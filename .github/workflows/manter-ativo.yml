@@ -13,6 +13,7 @@ jobs:
     steps:
       - name: Consulta leve no Supabase
         run: |
-          curl -fsS "https://uhywfpwkkktpmtqgkpbe.supabase.co/rest/v1/treino_dados?select=user_id&limit=1" \
+          curl -fsS -X POST "https://uhywfpwkkktpmtqgkpbe.supabase.co/rest/v1/rpc/manter_ativo" \
             -H "apikey: sb_publishable_Kr6fIQc7kE040GfuWvndcw_inhGTI9Q" \
+            -H "Content-Type: application/json" -d "{}" \
             -o /dev/null -w "HTTP %{http_code}\n"
