@@ -441,6 +441,7 @@ const nuvem = {
   fila: Promise.resolve(),
   pendente: false,
   canal: null,
+  ultimoSnapshot: 0,
 };
 
 function indicarNuvem(texto) {
@@ -545,6 +546,7 @@ async function enviarParaNuvem() {
   const { corpo, fotos } = separarFotos(db);
   const json = JSON.stringify(ordenarChaves(corpo));
   if (json === nuvem.ultimoJson) { nuvem.pendente = false; indicarNuvem('Salvo na sua conta'); return; }
+  // As fotos nunca são apagadas: versões antigas podem usá-las.
   for (const f of fotos) {
     if (!nuvem.fotosNaNuvem.has(f.id)) {
       const { error } = await sb.from('treino_fotos').upsert({ user_id: usuarioId, foto_id: f.id, data_url: f.dataUrl });
@@ -559,15 +561,11 @@ async function enviarParaNuvem() {
     atualizado_em: new Date().toISOString(),
   });
   if (error) throw error;
-  const usadas = new Set(fotos.map(f => f.id));
-  const sobras = [...nuvem.fotosNaNuvem].filter(id => !usadas.has(id));
-  for (const lote of emLotes(sobras, 50)) {
-    const { error: erroApagar } = await sb.from('treino_fotos').delete().in('foto_id', lote);
-    if (erroApagar) throw erroApagar;
-  }
-  for (const id of sobras) {
-    nuvem.fotosNaNuvem.delete(id);
-    nuvem.fotosCache.delete(id);
+  // Versão: no máximo uma a cada 10 minutos (a tabela guarda as últimas 200).
+  if (Date.now() - nuvem.ultimoSnapshot > 10 * 60 * 1000) {
+    const { error: erroVersao } = await sb.from('treino_historico').insert({ user_id: usuarioId, dados: corpo });
+    if (erroVersao) throw erroVersao;
+    nuvem.ultimoSnapshot = Date.now();
   }
   nuvem.ultimoJson = json;
   nuvem.pendente = false;
@@ -687,6 +685,41 @@ function telaCriarConta() {
       </form>
     </section>
     <button class="ghost" data-acao="irEntrar">← Voltar</button>`;
+}
+
+// ---------- versões salvas na conta ----------
+// Cada salvamento (no máximo a cada 10 minutos) guarda uma cópia do treino. Dá para voltar a qualquer uma.
+let versoesLista = [];
+
+async function listarVersoes() {
+  const { data, error } = await sb.from('treino_historico').select('id, criado_em, dados').order('criado_em', { ascending: false }).limit(30);
+  if (error) throw error;
+  return data || [];
+}
+
+function resumoVersao(d) {
+  const alunos = (d.alunos || []).length;
+  const treinos = (d.treinos || []).length;
+  return alunos + ' aluno(s), ' + treinos + ' treino(s)';
+}
+
+function dataVersao(iso) {
+  return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function telaVersoes() {
+  const itens = versoesLista.map(v => `
+    <button class="item" data-acao="restaurarVersao" data-id="${esc(String(v.id))}">
+      <strong>${esc(dataVersao(v.criado_em))}</strong>
+      <span class="suave">${esc(resumoVersao(v.dados || {}))}</span>
+    </button>`).join('') || '<p class="suave">Nenhuma versão salva ainda.</p>';
+  return `
+    <section class="cartao">
+      <h2>Versões salvas</h2>
+      <p class="suave">Cada salvamento guarda uma cópia na sua conta. Escolha uma para voltar a ela. O que está agora continua guardado nas versões.</p>
+      ${itens}
+    </section>
+    <button class="ghost" data-acao="backup">← Voltar</button>`;
 }
 
 // Quando o aparelho vai para segundo plano, manda logo o que ficou pendente.
@@ -1081,6 +1114,7 @@ function render() {
     anamneseEditar: telaAnamneseEditar,
     progresso: telaProgresso,
     entrar: telaEntrar,
+    versoes: telaVersoes,
     criarConta: telaCriarConta,
     alunoLogin: telaAlunoLogin,
     alunoHome: telaAlunoHome,
@@ -1729,6 +1763,7 @@ function telaBackup() {
     <section class="cartao">
       <p>O backup é um arquivo com todos os alunos, treinos, exercícios, avaliações (com fotos), anamneses, pagamentos, configurações e histórico. Guarde em um lugar seguro, como uma pasta do OneDrive ou um pendrive.</p>
       <button class="grande" data-acao="baixarBackup">Salvar backup no computador</button>
+      <button class="secundario-btn" data-acao="verVersoes">Versões salvas na conta</button>
     </section>
     <section class="cartao">
       <h3>Restaurar um backup</h3>
@@ -1748,6 +1783,35 @@ function dadosValidos(d) {
 // ---------- ações (botões) ----------
 
 const acoes = {
+  async verVersoes() {
+    try {
+      versoesLista = await listarVersoes();
+      ir({ tela: 'versoes' });
+    } catch (e) {
+      avisar('Não consegui carregar as versões agora. Tente de novo.');
+    }
+  },
+
+  async restaurarVersao(el) {
+    const v = versoesLista.find(x => String(x.id) === el.dataset.id);
+    if (!v) return;
+    if (!(await pedirConfirmacao('Voltar para a versão de ' + dataVersao(v.criado_em) + '? A versão atual continua guardada nas versões.'))) return;
+    try {
+      // Guarda o estado atual antes de trocar, para nada se perder.
+      const atual = separarFotos(db).corpo;
+      const { error: erroAtual } = await sb.from('treino_historico').insert({ user_id: usuarioId, dados: atual });
+      if (erroAtual) throw erroAtual;
+      await aplicarDoNuvem(JSON.parse(JSON.stringify(v.dados)));
+      nuvem.ultimoJson = '';
+      nuvem.ultimoSnapshot = 0;
+      agendarNuvem();
+      ir({ tela: 'backup' });
+      avisar('Versão restaurada.');
+    } catch (e) {
+      avisar('Não consegui voltar para essa versão. Nada foi trocado.');
+    }
+  },
+
   irCriarConta() { ir({ tela: 'criarConta' }); },
   irEntrar() { ir({ tela: 'entrar' }); },
 
