@@ -1,0 +1,2465 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2563eb">
+  <title>Treino</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
+  <style>
+:root {
+  --fundo: #f4f6fb;
+  --cartao: #ffffff;
+  --texto: #1b2433;
+  --suave: #6b7689;
+  --acento: #2563eb;
+  --acento-claro: #e8efff;
+  --perigo: #c62828;
+  --verde: #16a34a;
+  --borda: #dfe4ee;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fundo: #0f1421;
+    --cartao: #171f2f;
+    --texto: #e7ecf5;
+    --suave: #9aa6ba;
+    --acento: #60a5fa;
+    --acento-claro: #1e2a44;
+    --perigo: #f87171;
+    --verde: #22c55e;
+    --borda: #2a3550;
+  }
+}
+:root[data-theme="dark"] {
+  --fundo: #0f1421;
+  --cartao: #171f2f;
+  --texto: #e7ecf5;
+  --suave: #9aa6ba;
+  --acento: #60a5fa;
+  --acento-claro: #1e2a44;
+  --perigo: #f87171;
+  --verde: #22c55e;
+  --borda: #2a3550;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--cartao);
+  border-bottom: 1px solid var(--borda);
+}
+.marca { font-weight: 700; font-size: 18px; color: var(--acento); }
+.topo button { width: auto; margin: 0; }
+
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px 16px 120px;
+}
+
+h2 { font-size: 22px; margin: 12px 0 8px; }
+h3 { font-size: 17px; margin: 16px 0 8px; }
+
+.cartao {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+}
+.centro { text-align: center; }
+.suave { color: var(--suave); font-size: 14px; margin: 4px 0; }
+.texto { white-space: pre-wrap; margin: 4px 0; }
+a { color: var(--acento); }
+
+label {
+  display: block;
+  font-size: 14px;
+  color: var(--suave);
+  margin: 10px 0;
+}
+
+input, select, textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px;
+  font: inherit;
+  color: var(--texto);
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+}
+textarea { resize: vertical; min-height: 60px; }
+
+button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px 16px;
+  font: inherit;
+  color: #fff;
+  background: var(--acento);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+button.grande { font-size: 17px; padding: 16px; }
+button.secundario-btn { background: var(--acento-claro); color: var(--acento); }
+button.ghost { background: transparent; color: var(--acento); width: auto; padding: 8px 4px; }
+button.ghost.perigo { color: var(--perigo); }
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  color: var(--texto);
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+}
+.item strong { font-size: 16px; }
+.item-linha { align-items: stretch; }
+.item-linha .item { flex: 1; width: auto; margin: 0; }
+.item-linha .ghost { width: auto; margin: 0; align-self: center; }
+.lista { display: flex; flex-direction: column; gap: 8px; }
+
+.linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.botoes { display: flex; gap: 8px; }
+
+.grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.codigo {
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--acento);
+}
+
+.linha-s { margin: 4px 0; }
+.linha-s.nao { color: var(--suave); }
+
+/* Realizar treino */
+.serie {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 52px;
+  gap: 8px;
+  align-items: end;
+  padding: 8px 0;
+  border-top: 1px dashed var(--borda);
+}
+.serie .num {
+  font-weight: 700;
+  color: var(--suave);
+  padding-bottom: 14px;
+}
+.serie label { margin: 0; font-size: 12px; }
+.serie input { padding: 10px; }
+.check {
+  width: 52px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  background: var(--fundo);
+  color: var(--suave);
+  font-weight: 700;
+}
+.check.on { background: var(--verde); color: #fff; }
+
+/* Fotos, gráfico e impressão */
+.fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fotos img { width: 100%; border-radius: 8px; }
+.grafico svg { width: 100%; height: auto; }
+.grafico text { font-size: 11px; fill: var(--suave); }
+.so-impressao { display: none; }
+
+@media print {
+  .so-impressao { display: block; }
+  body * { visibility: hidden; }
+  .so-impressao, .so-impressao * { visibility: visible; }
+  .so-impressao { position: absolute; left: 0; top: 0; width: 100%; color: #000; }
+  .so-impressao table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .so-impressao th, .so-impressao td { border: 1px solid #999; padding: 4px; font-size: 12px; text-align: left; }
+}
+
+/* Banner de descanso */
+.descanso {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #1b2433;
+  color: #fff;
+}
+.descanso strong {
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+.ghost-claro {
+  width: auto;
+  margin: 0;
+  background: #fff;
+  color: #1b2433;
+}
+.status-nuvem { font-size: 12px; color: var(--suave); margin-left: auto; margin-right: 12px; white-space: nowrap; }
+.aviso { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); max-width: 90%; background: var(--texto); color: var(--fundo); padding: 12px 16px; border-radius: 10px; z-index: 50; font-size: 14px; }
+.fundo-dialogo { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 60; }
+.dialogo { background: var(--cartao); color: var(--texto); border-radius: 12px; padding: 20px; max-width: 420px; width: 100%; box-sizing: border-box; }
+.dialogo label { display: block; }
+.dialogo input { display: block; width: 100%; margin-top: 8px; padding: 10px; border-radius: 8px; border: 1px solid var(--borda); background: var(--fundo); color: var(--texto); font: inherit; box-sizing: border-box; }
+.dialogo .botoes { justify-content: flex-end; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <span class="marca">Treino</span>
+    <span id="status-nuvem" class="status-nuvem"></span>
+    <button id="btn-sair" class="ghost" hidden>Sair</button>
+  </header>
+
+  <main id="app"></main>
+
+  <div id="descanso" class="descanso" hidden>
+    <span>Descanso</span>
+    <strong id="descanso-tempo">00:00</strong>
+    <span class="botoes">
+      <button id="descanso-mais" class="ghost-claro">+15 s</button>
+      <button id="descanso-pular" class="ghost-claro">Pular</button>
+    </span>
+  </div>
+
+  <script>
+// Treino: um app com dois perfis.
+// Personal monta os treinos, a biblioteca de exercícios, as avaliações, a mensalidade e o Pix dos alunos.
+// Aluno realiza os treinos, registra o que fez, vê o próprio progresso e deixa um feedback.
+// Os dados ficam no navegador deste aparelho (localStorage). Dentro do Claude, também são salvos na sua conta.
+
+const CHAVE_DADOS = 'treino_app_v1';
+const CHAVE_SESSAO = 'treino_app_sessao';
+const CHAVE_EXECUCAO = 'treino_app_execucao';
+
+const GRUPOS = ['Peito', 'Costas', 'Pernas', 'Glúteos', 'Ombros', 'Braços', 'Abdômen', 'Cardio', 'Outro'];
+
+const PERGUNTAS_ANAMNESE = [
+  ['objetivo', 'Qual é o seu objetivo?'],
+  ['atividade', 'Já pratica alguma atividade física? Qual e com que frequência?'],
+  ['lesoes', 'Tem alguma lesão, dor ou cirurgia recente?'],
+  ['saude', 'Tem alguma doença ou usa algum medicamento de uso contínuo?'],
+  ['sono', 'Quantas horas costuma dormir por noite?'],
+  ['alimentacao', 'Como é a sua alimentação no dia a dia?'],
+  ['fumo', 'Fuma ou consome bebida alcoólica? Com que frequência?'],
+  ['observacoes', 'Observações'],
+];
+
+const MODELOS_AVALIACAO = {
+  fisica: {
+    nome: 'Avaliação física',
+    campos: [
+      ['peso', 'Peso (kg)'],
+      ['altura', 'Altura (cm)'],
+      ['gordura', 'Gordura corporal (%)'],
+      ['braco', 'Braço (cm)'],
+      ['cintura', 'Cintura (cm)'],
+      ['quadril', 'Quadril (cm)'],
+      ['coxa', 'Coxa (cm)'],
+      ['panturrilha', 'Panturrilha (cm)'],
+      ['fcRepouso', 'Frequência cardíaca em repouso (bpm)'],
+      ['pa', 'Pressão arterial (ex.: 12x8)'],
+    ],
+  },
+  postural: {
+    nome: 'Avaliação postural',
+    campos: [
+      ['cabeca', 'Cabeça'],
+      ['ombros', 'Ombros'],
+      ['coluna', 'Coluna'],
+      ['pelve', 'Pelve'],
+      ['joelhos', 'Joelhos'],
+      ['pes', 'Pés'],
+    ],
+  },
+  neuromotora: {
+    nome: 'Avaliação neuromotora',
+    campos: [
+      ['flexibilidade', 'Flexibilidade (cm)'],
+      ['flexoes', 'Flexões em 1 minuto (quantidade)'],
+      ['abdominais', 'Abdominais em 1 minuto (quantidade)'],
+      ['equilibrio', 'Equilíbrio (segundos)'],
+      ['agilidade', 'Agilidade (segundos)'],
+    ],
+  },
+};
+
+// Modelos fixos de treino (não usam IA). Cada exercício: [nome, séries, reps].
+const MODELOS_TREINO = {
+  corpoInteiro: {
+    nome: 'Corpo inteiro (iniciante)',
+    exercicios: [
+      ['Agachamento', 3, '10-12'],
+      ['Supino reto', 3, '10-12'],
+      ['Remada curvada', 3, '10-12'],
+      ['Desenvolvimento', 3, '10-12'],
+      ['Prancha', 3, '30 s'],
+    ],
+  },
+  divisaoA: {
+    nome: 'Divisão A: peito, ombro e tríceps',
+    exercicios: [
+      ['Supino reto', 4, '8-10'],
+      ['Supino inclinado', 3, '10-12'],
+      ['Desenvolvimento', 3, '10-12'],
+      ['Elevação lateral', 3, '12-15'],
+      ['Tríceps na polia', 3, '10-12'],
+    ],
+  },
+  divisaoB: {
+    nome: 'Divisão B: costas e bíceps',
+    exercicios: [
+      ['Puxada frontal', 4, '8-10'],
+      ['Remada curvada', 3, '8-10'],
+      ['Remada unilateral', 3, '10-12'],
+      ['Rosca direta', 3, '10-12'],
+      ['Rosca martelo', 3, '12'],
+    ],
+  },
+  divisaoC: {
+    nome: 'Divisão C: pernas e abdômen',
+    exercicios: [
+      ['Agachamento', 4, '8-10'],
+      ['Leg press', 3, '10-12'],
+      ['Cadeira extensora', 3, '12-15'],
+      ['Mesa flexora', 3, '10-12'],
+      ['Abdominal supra', 3, '15'],
+    ],
+  },
+};
+
+const app = document.getElementById('app');
+const btnSair = document.getElementById('btn-sair');
+const descansoBox = document.getElementById('descanso');
+const descansoTempo = document.getElementById('descanso-tempo');
+const descansoMais = document.getElementById('descanso-mais');
+const descansoPular = document.getElementById('descanso-pular');
+
+let db = carregarDados();
+let sessao = lerJSON(CHAVE_SESSAO);      // { papel: 'personal' } ou { papel: 'aluno', alunoId }
+let execucao = lerJSON(CHAVE_EXECUCAO);  // treino que o aluno está fazendo agora
+let rascunho = null;                     // treino em edição (personal)
+let fotosTemp = [];                      // fotos escolhidas na avaliação em andamento
+let rota = { tela: 'inicio' };
+let timerDescanso = null;
+let descansoRestante = 0;
+let audioCtx = null;
+
+// ---------- armazenamento ----------
+
+function lerJSON(chave) {
+  try { return JSON.parse(localStorage.getItem(chave)) || null; } catch (e) { return null; }
+}
+
+function gravarJSON(chave, valor) {
+  try {
+    if (valor) localStorage.setItem(chave, JSON.stringify(valor));
+    else localStorage.removeItem(chave);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function carregarDados() {
+  const d = lerJSON(CHAVE_DADOS) || {};
+  return {
+    personal: d.personal || null,
+    alunos: d.alunos || [],
+    treinos: d.treinos || [],
+    sessoes: d.sessoes || [],
+    exercicios: d.exercicios || [],
+    anamneses: d.anamneses || [],
+    avaliacoes: d.avaliacoes || [],
+    config: d.config || {},
+  };
+}
+
+function salvarDados() {
+  const ok = gravarJSON(CHAVE_DADOS, db);
+  agendarNuvem();
+  if (ok || nuvem.ativa) return true;
+  avisar('Não consegui salvar neste aparelho. Apague algumas avaliações com foto e tente de novo.');
+  return false;
+}
+
+// ---------- conta (sincronização entre aparelhos) ----------
+// A conta fica no Supabase, com e-mail e senha. Os dados vão para ela e voltam para o celular e o computador.
+
+const CONTA = {
+  url: 'https://uhywfpwkkktpmtqgkpbe.supabase.co',
+  chave: 'sb_publishable_Kr6fIQc7kE040GfuWvndcw_inhGTI9Q',
+};
+
+const MSG_OFFLINE = 'Sem conexão com a conta. Os dados continuam salvos aqui.';
+
+let sb = null;          // cliente do Supabase
+let usuarioId = null;   // id de quem está logado
+
+const nuvem = {
+  ativa: false,
+  carregada: false,     // só envia para a conta depois de ler a conta, para não apagar nada lá
+  ultimoJson: '',
+  fotosNaNuvem: new Set(),
+  fotosCache: new Map(),
+  timer: null,
+  fila: Promise.resolve(),
+  pendente: false,
+  canal: null,
+};
+
+function indicarNuvem(texto) {
+  const el = document.getElementById('status-nuvem');
+  if (el) el.textContent = texto;
+}
+
+function ordenarChaves(v) {
+  if (Array.isArray(v)) return v.map(ordenarChaves);
+  if (v && typeof v === 'object') {
+    const o = {};
+    for (const k of Object.keys(v).sort()) o[k] = ordenarChaves(v[k]);
+    return o;
+  }
+  return v;
+}
+
+function hashTexto(t) {
+  let h = 2166136261;
+  for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36) + t.length.toString(36);
+}
+
+// As fotos são grandes: ficam numa tabela própria. No registro do treino ficam só os códigos.
+function separarFotos(dados) {
+  const corpo = JSON.parse(JSON.stringify(dados));
+  const fotos = [];
+  for (const av of corpo.avaliacoes || []) {
+    av.fotos = (av.fotos || []).map(f => {
+      const id = String(av.id || '') + '-' + hashTexto(f);
+      fotos.push({ id, dataUrl: f });
+      return id;
+    });
+  }
+  return { corpo, fotos };
+}
+
+function temAlgumDado() {
+  return !!(db.personal || db.alunos.length || db.treinos.length || db.sessoes.length
+    || db.exercicios.length || db.avaliacoes.length || db.anamneses.length);
+}
+
+function emLotes(lista, tamanho) {
+  const lotes = [];
+  for (let i = 0; i < lista.length; i += tamanho) lotes.push(lista.slice(i, i + tamanho));
+  return lotes;
+}
+
+// Traz os dados da conta para este aparelho. Se alguma foto não puder ser lida, não aplica nada.
+async function aplicarDoNuvem(corpo) {
+  const dados = JSON.parse(JSON.stringify(corpo));
+  const ids = [];
+  for (const av of dados.avaliacoes || []) for (const fid of av.fotos || []) ids.push(fid);
+  const faltam = [...new Set(ids)].filter(id => !nuvem.fotosCache.has(id));
+  for (const lote of emLotes(faltam, 50)) {
+    const { data, error } = await sb.from('treino_fotos').select('foto_id, data_url').in('foto_id', lote);
+    if (error) throw error;
+    for (const r of data) nuvem.fotosCache.set(r.foto_id, r.data_url);
+  }
+  for (const av of dados.avaliacoes || []) {
+    const lista = [];
+    for (const fid of av.fotos || []) {
+      const url = nuvem.fotosCache.get(fid);
+      if (!url) throw new Error('foto ausente');
+      lista.push(url);
+    }
+    av.fotos = lista;
+  }
+  nuvem.fotosNaNuvem = new Set(ids);
+  db = {
+    personal: dados.personal || null,
+    alunos: dados.alunos || [],
+    treinos: dados.treinos || [],
+    sessoes: dados.sessoes || [],
+    exercicios: dados.exercicios || [],
+    anamneses: dados.anamneses || [],
+    avaliacoes: dados.avaliacoes || [],
+    config: dados.config || {},
+  };
+  nuvem.ultimoJson = JSON.stringify(ordenarChaves(corpo));
+  gravarJSON(CHAVE_DADOS, db);
+}
+
+function agendarNuvem() {
+  if (!nuvem.ativa || !nuvem.carregada) return;
+  nuvem.pendente = true;
+  indicarNuvem('Salvando…');
+  clearTimeout(nuvem.timer);
+  nuvem.timer = setTimeout(enfileirarEnvio, 700);
+}
+
+function enfileirarEnvio() {
+  clearTimeout(nuvem.timer);
+  nuvem.fila = nuvem.fila.then(enviarParaNuvem).catch(() => {
+    indicarNuvem('Não consegui salvar na conta agora. Vou tentar de novo.');
+    setTimeout(agendarNuvem, 5000);
+  });
+}
+
+async function enviarParaNuvem() {
+  if (!nuvem.carregada || !sb) return;
+  const { corpo, fotos } = separarFotos(db);
+  const json = JSON.stringify(ordenarChaves(corpo));
+  if (json === nuvem.ultimoJson) { nuvem.pendente = false; indicarNuvem('Salvo na sua conta'); return; }
+  for (const f of fotos) {
+    if (!nuvem.fotosNaNuvem.has(f.id)) {
+      const { error } = await sb.from('treino_fotos').upsert({ user_id: usuarioId, foto_id: f.id, data_url: f.dataUrl });
+      if (error) throw error;
+      nuvem.fotosNaNuvem.add(f.id);
+      nuvem.fotosCache.set(f.id, f.dataUrl);
+    }
+  }
+  const { error } = await sb.from('treino_dados').upsert({
+    user_id: usuarioId,
+    dados: corpo,
+    atualizado_em: new Date().toISOString(),
+  });
+  if (error) throw error;
+  const usadas = new Set(fotos.map(f => f.id));
+  const sobras = [...nuvem.fotosNaNuvem].filter(id => !usadas.has(id));
+  for (const lote of emLotes(sobras, 50)) {
+    const { error: erroApagar } = await sb.from('treino_fotos').delete().in('foto_id', lote);
+    if (erroApagar) throw erroApagar;
+  }
+  for (const id of sobras) {
+    nuvem.fotosNaNuvem.delete(id);
+    nuvem.fotosCache.delete(id);
+  }
+  nuvem.ultimoJson = json;
+  nuvem.pendente = false;
+  indicarNuvem('Salvo na sua conta');
+}
+
+// Quando o mesmo treino muda no outro aparelho, a tela deste aparelho se atualiza.
+function ouvirNuvem(linha) {
+  if (!linha || !linha.dados) return;
+  const corpo = linha.dados;
+  if (JSON.stringify(ordenarChaves(corpo)) === nuvem.ultimoJson) return;
+  nuvem.fila = nuvem.fila.then(async () => {
+    if (nuvem.pendente) return;
+    try {
+      await aplicarDoNuvem(corpo);
+      render();
+      indicarNuvem('Salvo na sua conta');
+    } catch (e) {
+      indicarNuvem('Não consegui atualizar pela conta agora');
+    }
+  });
+}
+
+function assinarNuvem() {
+  if (!usuarioId || !sb || nuvem.canal) return;
+  nuvem.canal = sb.channel('treino-' + usuarioId)
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'treino_dados', filter: 'user_id=eq.' + usuarioId },
+      (p) => ouvirNuvem(p.new))
+    .subscribe((estado) => {
+      if (estado === 'CHANNEL_ERROR' || estado === 'TIMED_OUT') indicarNuvem(MSG_OFFLINE);
+    });
+}
+
+function mensagemErroConta(erro) {
+  const m = ((erro && erro.message) || '').toLowerCase();
+  if (m.includes('invalid login')) return 'E-mail ou senha errados.';
+  if (m.includes('already registered') || m.includes('already been registered')) return 'Esse e-mail já tem conta. Entre com a senha.';
+  if (m.includes('at least') || m.includes('least 6')) return 'A senha precisa ter pelo menos 6 caracteres.';
+  if (m.includes('email not confirmed')) return 'Confirme o e-mail que chegou na sua caixa antes de entrar.';
+  if (m.includes('fetch') || m.includes('network')) return MSG_OFFLINE;
+  return 'Não consegui: ' + ((erro && erro.message) || 'erro desconhecido');
+}
+
+// Ao abrir: 'sem-conta' manda para a tela de entrar; 'ok' e 'offline' usam os dados que estiverem neste aparelho.
+async function iniciarConta() {
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    indicarNuvem(MSG_OFFLINE);
+    return 'offline';
+  }
+  if (!sb) sb = window.supabase.createClient(CONTA.url, CONTA.chave);
+  const { data } = await sb.auth.getSession();
+  if (!data || !data.session) return 'sem-conta';
+  usuarioId = data.session.user.id;
+  nuvem.ativa = true;
+  indicarNuvem('Conectando à sua conta…');
+  try {
+    const { data: linha, error } = await sb.from('treino_dados').select('dados').eq('user_id', usuarioId).maybeSingle();
+    if (error) throw error;
+    if (linha) await aplicarDoNuvem(linha.dados);
+    nuvem.carregada = true;
+    if (!linha && temAlgumDado()) agendarNuvem();
+    indicarNuvem('Salvo na sua conta');
+  } catch (e) {
+    indicarNuvem('Não consegui ler a conta. Recarregue a página.');
+  }
+  assinarNuvem();
+  return 'ok';
+}
+
+async function arrancar() {
+  let estado = 'offline';
+  try {
+    estado = await iniciarConta();
+  } catch (e) {
+    indicarNuvem(MSG_OFFLINE);
+  }
+  if (estado === 'sem-conta') {
+    rota = { tela: 'entrar' };
+    render();
+    return;
+  }
+  iniciar();
+}
+
+function telaEntrar() {
+  return `
+    <section class="cartao">
+      <h2>Entrar</h2>
+      <p class="suave">Entre com o mesmo e-mail e senha no celular e no computador. Assim o treino aparece nos dois.</p>
+      <form data-form="entrar">
+        <label>E-mail
+          <input name="email" type="email" required autocomplete="email">
+        </label>
+        <label>Senha
+          <input name="senha" type="password" required minlength="6" autocomplete="current-password">
+        </label>
+        <button class="grande" type="submit">Entrar</button>
+      </form>
+    </section>
+    <button class="ghost" data-acao="irCriarConta">Criar conta nova</button>`;
+}
+
+function telaCriarConta() {
+  return `
+    <section class="cartao">
+      <h2>Criar conta</h2>
+      <p class="suave">A senha precisa ter pelo menos 6 caracteres.</p>
+      <form data-form="criarConta">
+        <label>E-mail
+          <input name="email" type="email" required autocomplete="email">
+        </label>
+        <label>Senha
+          <input name="senha" type="password" required minlength="6" autocomplete="new-password">
+        </label>
+        <button class="grande" type="submit">Criar conta</button>
+      </form>
+    </section>
+    <button class="ghost" data-acao="irEntrar">← Voltar</button>`;
+}
+
+// Quando o aparelho vai para segundo plano, manda logo o que ficou pendente.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && nuvem.pendente) enfileirarEnvio();
+});
+
+// ---------- avisos e diálogos ----------
+// O Claude não mostra alert, confirm nem prompt: estes são feitos pela própria página.
+
+function avisar(texto) {
+  let el = document.getElementById('aviso');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'aviso';
+    el.className = 'aviso';
+    el.setAttribute('role', 'status');
+    document.body.appendChild(el);
+  }
+  el.textContent = texto;
+  el.hidden = false;
+  clearTimeout(avisar.timer);
+  avisar.timer = setTimeout(() => { el.hidden = true; }, 4000);
+}
+
+function abrirDialogo(html) {
+  return new Promise(resolve => {
+    const fundo = document.createElement('div');
+    fundo.className = 'fundo-dialogo';
+    fundo.innerHTML = '<div class="dialogo" role="dialog" aria-modal="true">' + html + '</div>';
+    document.body.appendChild(fundo);
+    const campo = fundo.querySelector('input');
+    const fechar = (valor) => {
+      document.removeEventListener('keydown', teclar);
+      fundo.remove();
+      resolve(valor);
+    };
+    const teclar = (e) => { if (e.key === 'Escape') fechar(null); };
+    document.addEventListener('keydown', teclar);
+    fundo.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-r]');
+      if (!b) return;
+      if (b.dataset.r === 'nao') return fechar(null);
+      fechar(campo ? campo.value : true);
+    });
+    if (campo) campo.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); fechar(campo.value); }
+    });
+    (campo || fundo.querySelector('[data-r="sim"]')).focus();
+  });
+}
+
+function pedirConfirmacao(texto) {
+  return abrirDialogo(
+    `<p>${esc(texto)}</p><div class="botoes"><button class="ghost" data-r="nao">Cancelar</button><button class="grande" data-r="sim">Confirmar</button></div>`
+  ).then(v => v !== null);
+}
+
+function perguntarTexto(texto, valor) {
+  return abrirDialogo(
+    `<label>${esc(texto)}<input type="text" value="${esc(valor || '')}"></label><div class="botoes"><button class="ghost" data-r="nao">Cancelar</button><button class="grande" data-r="sim">OK</button></div>`
+  );
+}
+
+// window.open não funciona dentro do Claude: o link é criado e clicado pela própria página.
+function abrirLink(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function gravarSessao(s) {
+  sessao = s;
+  gravarJSON(CHAVE_SESSAO, s);
+}
+
+function gravarExecucao() {
+  gravarJSON(CHAVE_EXECUCAO, execucao);
+}
+
+// ---------- ajudantes ----------
+
+function novoId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[c]);
+}
+
+function txt(v) {
+  return String(v ?? '').trim();
+}
+
+function campo(f, nome) {
+  const el = f.querySelector(`[name="${nome}"]`);
+  return el ? el.value : '';
+}
+
+function numero(v, padrao) {
+  const n = parseFloat(String(v ?? '').replace(',', '.'));
+  return Number.isFinite(n) ? n : padrao;
+}
+
+function numeroPuro(v) {
+  return /^\s*\d+([.,]\d+)?\s*$/.test(String(v ?? '')) ? numero(v, NaN) : NaN;
+}
+
+function linkSeguro(u) {
+  return /^https?:\/\//i.test(u) ? u : '';
+}
+
+function youtubeBusca(nome) {
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(nome + ' exercício');
+}
+
+function codigoAluno() {
+  const letras = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let codigo;
+  do {
+    codigo = '';
+    for (let i = 0; i < 6; i++) codigo += letras[Math.floor(Math.random() * letras.length)];
+  } while (db.alunos.some(a => a.codigo === codigo));
+  return codigo;
+}
+
+function tempo(seg) {
+  const m = Math.floor(seg / 60);
+  const s = seg % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function dataCurta(iso) {
+  return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function dataBR(s) {
+  return s ? String(s).split('-').reverse().join('/') : '';
+}
+
+function dataHoje() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function mesAtual() {
+  return dataHoje().slice(0, 7);
+}
+
+function mesBR(m) {
+  const [ano, mes] = m.split('-');
+  return `${mes}/${ano}`;
+}
+
+function periodoTxt(t) {
+  if (t.fim) return ' · válido até ' + dataBR(t.fim);
+  if (t.inicio) return ' · a partir de ' + dataBR(t.inicio);
+  return '';
+}
+
+function sessoesDaSemana() {
+  const limite = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  return db.sessoes.filter(s => new Date(s.data).getTime() >= limite);
+}
+
+function perguntasAnamnese() {
+  const p = db.config && db.config.perguntasAnamnese;
+  return Array.isArray(p) && p.length ? p : PERGUNTAS_ANAMNESE.map(([id, texto]) => ({ id, texto }));
+}
+
+function alunoPorId(id) {
+  return db.alunos.find(a => a.id === id);
+}
+
+function alunoLogado() {
+  return sessao && sessao.papel === 'aluno' ? alunoPorId(sessao.alunoId) : null;
+}
+
+// ---------- Pix (copia e cola, sem serviço pago) ----------
+
+function crc16(texto) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < texto.length; i++) {
+    crc ^= texto.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function campoPix(id, valor) {
+  return id + String(valor.length).padStart(2, '0') + valor;
+}
+
+function semAcento(s) {
+  return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\x20-\x7E]/g, '').trim();
+}
+
+function pixCopiaCola({ chave, nome, cidade, valor, txid }) {
+  const conta = campoPix('00', 'br.gov.bcb.pix') + campoPix('01', chave);
+  let p = campoPix('00', '01') + campoPix('26', conta) + campoPix('52', '0000') + campoPix('53', '986');
+  if (valor > 0) p += campoPix('54', valor.toFixed(2));
+  p += campoPix('58', 'BR');
+  p += campoPix('59', semAcento(nome).slice(0, 25));
+  p += campoPix('60', semAcento(cidade).slice(0, 15));
+  p += campoPix('62', campoPix('05', txid));
+  p += '6304';
+  return p + crc16(p);
+}
+
+// ---------- descanso entre séries ----------
+
+function iniciarDescanso(seg) {
+  pararDescanso();
+  if (!seg || seg <= 0) return;
+  descansoRestante = seg;
+  atualizarDescanso();
+  descansoBox.hidden = false;
+  timerDescanso = setInterval(() => {
+    descansoRestante -= 1;
+    atualizarDescanso();
+    if (descansoRestante <= 0) {
+      pararDescanso();
+      avisarFimDescanso();
+    }
+  }, 1000);
+}
+
+function atualizarDescanso() {
+  descansoTempo.textContent = tempo(Math.max(0, descansoRestante));
+}
+
+function ajustarDescanso(delta) {
+  if (!timerDescanso) return;
+  descansoRestante = Math.max(1, descansoRestante + delta);
+  atualizarDescanso();
+}
+
+function pararDescanso() {
+  clearInterval(timerDescanso);
+  timerDescanso = null;
+  descansoBox.hidden = true;
+}
+
+function avisarFimDescanso() {
+  bipar();
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+}
+
+function garantirAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {
+    audioCtx = null;
+  }
+}
+
+function bipar() {
+  try {
+    garantirAudio();
+    if (!audioCtx) return;
+    for (let i = 0; i < 3; i++) {
+      const osc = audioCtx.createOscillator();
+      const volume = audioCtx.createGain();
+      osc.frequency.value = 880;
+      volume.gain.value = 0.3;
+      osc.connect(volume);
+      volume.connect(audioCtx.destination);
+      const inicio = audioCtx.currentTime + i * 0.35;
+      osc.start(inicio);
+      osc.stop(inicio + 0.2);
+    }
+  } catch (e) {
+    // sem som neste aparelho: o aviso continua pela vibração
+  }
+}
+
+// ---------- progresso e histórico ----------
+
+function nomesExercicios(alunoId) {
+  const set = new Set();
+  db.sessoes.filter(s => s.alunoId === alunoId).forEach(s => s.exercicios.forEach(e => set.add(e.nome)));
+  return [...set].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+function progressoPontos(alunoId, nome) {
+  return db.sessoes
+    .filter(s => s.alunoId === alunoId)
+    .sort((x, y) => x.data.localeCompare(y.data))
+    .map(s => {
+      const ex = s.exercicios.find(e => e.nome === nome);
+      if (!ex) return null;
+      const cargas = ex.series.filter(x => x.feito).map(x => numero(x.carga, NaN)).filter(v => Number.isFinite(v) && v > 0);
+      return cargas.length ? { data: s.data, carga: Math.max(...cargas) } : null;
+    })
+    .filter(Boolean);
+}
+
+function graficoSVG(pontos) {
+  const W = 320, H = 160, margem = 28;
+  const valores = pontos.map(p => p.carga);
+  const min = Math.min(...valores), max = Math.max(...valores);
+  const faixa = max - min || 1;
+  const x = i => pontos.length === 1 ? W / 2 : margem + i * (W - 2 * margem) / (pontos.length - 1);
+  const y = v => max === min ? H / 2 : H - margem - (v - min) / faixa * (H - 2 * margem);
+  const linha = pontos.length > 1
+    ? `<polyline points="${pontos.map((p, i) => `${x(i).toFixed(1)},${y(p.carga).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--acento)" stroke-width="2"/>`
+    : '';
+  const bolinhas = pontos.map((p, i) => `
+    <circle cx="${x(i).toFixed(1)}" cy="${y(p.carga).toFixed(1)}" r="4" fill="var(--acento)">
+      <title>${dataBR(p.data.slice(0, 10))}: ${p.carga} kg</title>
+    </circle>`).join('');
+  return `
+    <div class="grafico">
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução da carga">
+        ${linha}${bolinhas}
+        <text x="2" y="14">${max} kg</text>
+        <text x="2" y="${H - 6}">${min} kg</text>
+      </svg>
+    </div>`;
+}
+
+function ultimaVez(nome, alunoId) {
+  const sess = db.sessoes.filter(s => s.alunoId === alunoId).sort((x, y) => y.data.localeCompare(x.data));
+  for (const s of sess) {
+    const ex = s.exercicios.find(e => e.nome === nome);
+    if (!ex) continue;
+    const feitas = ex.series.filter(x => x.feito);
+    if (!feitas.length) continue;
+    const melhor = feitas.reduce((m, x) => (numero(x.carga, 0) > numero(m.carga, 0) ? x : m), feitas[0]);
+    return `${dataBR(s.data.slice(0, 10))}: ${feitas.length} série(s) · ${esc(melhor.reps) || '—'} reps · ${esc(melhor.carga) || '—'} kg`;
+  }
+  return '';
+}
+
+// ---------- fotos ----------
+
+function comprimirFoto(arquivo) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(arquivo);
+    const img = new Image();
+    img.onload = () => {
+      const escala = Math.min(1, 800 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * escala);
+      canvas.height = Math.round(img.height * escala);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('imagem inválida'));
+    };
+    img.src = url;
+  });
+}
+
+// ---------- navegação ----------
+
+function ir(nova) {
+  rota = nova;
+  render();
+  window.scrollTo(0, 0);
+}
+
+function render() {
+  btnSair.hidden = !sessao;
+  if (rota.tela !== 'treinoRealizar') pararDescanso();
+  const telas = {
+    inicio: telaInicio,
+    personalNome: telaPersonalNome,
+    personal: telaPersonal,
+    configuracoes: telaConfiguracoes,
+    exercicios: telaExercicios,
+    exercicioForm: telaExercicioForm,
+    alunoNovo: telaAlunoNovo,
+    alunoDetalhe: telaAlunoDetalhe,
+    treinoEditar: telaTreinoEditar,
+    pagamento: telaPagamento,
+    avaliacoes: telaAvaliacoes,
+    avaliacaoNova: telaAvaliacaoNova,
+    anamneseEditar: telaAnamneseEditar,
+    progresso: telaProgresso,
+    entrar: telaEntrar,
+    criarConta: telaCriarConta,
+    alunoLogin: telaAlunoLogin,
+    alunoHome: telaAlunoHome,
+    treinoRealizar: telaTreinoRealizar,
+    historico: telaHistorico,
+    sessaoDetalhe: telaSessaoDetalhe,
+    backup: telaBackup,
+  };
+  app.innerHTML = (telas[rota.tela] || telaInicio)();
+}
+
+// ---------- telas ----------
+
+function telaInicio() {
+  return `
+    <section class="cartao centro">
+      <h2>Treino</h2>
+      <p class="suave">Escolha quem está usando o app.</p>
+      <button class="grande" data-acao="entrarPersonal">Sou o personal</button>
+      <button class="grande secundario-btn" data-acao="entrarAluno">Sou aluno</button>
+      <button class="ghost" data-acao="backup">Backup dos dados</button>
+    </section>`;
+}
+
+function telaPersonalNome() {
+  return `
+    <section class="cartao">
+      <h2>Qual é o seu nome?</h2>
+      <form data-form="personalNome">
+        <label>Nome
+          <input name="nome" required autocomplete="name">
+        </label>
+        <button class="grande" type="submit">Continuar</button>
+      </form>
+    </section>
+    <button class="ghost" data-acao="voltarInicio">← Voltar</button>`;
+}
+
+function telaPersonal() {
+  const atrasados = alunosEmAtraso();
+  const alunos = db.alunos.slice().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  const lista = alunos.length
+    ? alunos.map(a => {
+        const n = db.treinos.filter(t => t.alunoId === a.id).length;
+        const feitos = db.sessoes.filter(s => s.alunoId === a.id).length;
+        return `
+          <button class="item" data-acao="abrirAluno" data-id="${esc(a.id)}">
+            <strong>${esc(a.nome)}</strong>
+            <span class="suave">${n} treino(s) · ${feitos} feito(s) · código ${esc(a.codigo)}</span>
+          </button>`;
+      }).join('')
+    : '<p class="suave">Nenhum aluno ainda. Cadastre o primeiro.</p>';
+  const semana = sessoesDaSemana().length;
+  return `
+    <h2>Olá, ${esc(db.personal ? db.personal.nome : '')}</h2>
+    <p class="suave">Nos últimos 7 dias: ${semana} treino(s) feito(s) pelos seus alunos.</p>
+    <button class="grande" data-acao="novoAluno">+ Novo aluno</button>
+    <button class="secundario-btn" data-acao="exercicios">Biblioteca de exercícios</button>
+    <button class="secundario-btn" data-acao="configuracoes">Configurações (Pix)</button>
+    ${atrasados.length ? `<section class="cartao"><h3>Mensalidades em atraso (${atrasados.length})</h3>${atrasados.map(a => `
+      <div class="linha item-linha">
+        <span><strong>${esc(a.nome)}</strong><br><span class="suave">Venceu dia ${esc(a.pagamento.dia)}</span></span>
+      </div>`).join('')}</section>` : ''}
+    <h3>Seus alunos</h3>
+    <div class="lista">${lista}</div>
+    <button class="secundario-btn" data-acao="backup">Backup dos dados</button>
+    <button class="ghost" data-acao="sairDaConta">Sair da conta</button>
+    <button class="ghost perigo" data-acao="sair">Sair</button>`;
+}
+
+function telaConfiguracoes() {
+  const pix = (db.config && db.config.pix) || {};
+  return `
+    <button class="ghost" data-acao="voltarPersonal">← Voltar</button>
+    <h2>Configurações</h2>
+    <section class="cartao">
+      <h3>Pix para mensalidades</h3>
+      <p class="suave">Sua chave fica salva só neste aparelho. Use a chave exatamente como está no seu banco (CPF, e-mail, telefone com +55 ou chave aleatória).</p>
+      <form data-form="config">
+        <label>Chave Pix
+          <input name="chave" value="${esc(pix.chave || '')}">
+        </label>
+        <label>Nome do recebedor (como aparece no banco, até 25 letras)
+          <input name="nome" maxlength="25" value="${esc(pix.nome || '')}">
+        </label>
+        <label>Cidade (até 15 letras)
+          <input name="cidade" maxlength="15" value="${esc(pix.cidade || '')}">
+        </label>
+        <button class="grande" type="submit">Salvar</button>
+      </form>
+    </section>
+    <section class="cartao">
+      <h3>Perguntas da anamnese</h3>
+      <p class="suave">Uma pergunta por linha. Para tirar uma pergunta, apague a linha. Respostas de perguntas apagadas ou reescritas deixam de aparecer, mas ficam guardadas no backup.</p>
+      <form data-form="perguntas">
+        <label>Perguntas
+          <textarea name="perguntas" rows="10">${esc(perguntasAnamnese().map(p => p.texto).join('\n'))}</textarea>
+        </label>
+        <button class="secundario-btn" type="submit">Salvar perguntas</button>
+      </form>
+    </section>`;
+}
+
+function telaExercicios() {
+  const lista = db.exercicios.length
+    ? db.exercicios.slice().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(e => `
+        <button class="item" data-acao="exercicioEditar" data-id="${esc(e.id)}">
+          <strong>${esc(e.nome)}</strong>
+          <span class="suave">${esc(e.grupo || 'Sem grupo')}${e.video ? ' · tem vídeo' : ''}</span>
+        </button>`).join('')
+    : '<p class="suave">Nenhum exercício na biblioteca ainda. Cadastre os que você mais usa.</p>';
+  return `
+    <button class="ghost" data-acao="voltarPersonal">← Voltar</button>
+    <h2>Biblioteca de exercícios</h2>
+    <p class="suave">Cadastre o exercício uma vez e use nos treinos. Ao digitar o mesmo nome num treino, o vídeo entra sozinho.</p>
+    <button class="grande" data-acao="exercicioNovo">+ Novo exercício</button>
+    <div class="lista">${lista}</div>`;
+}
+
+function telaExercicioForm() {
+  const e = rota.id ? db.exercicios.find(x => x.id === rota.id) : null;
+  const opcoes = ['', ...GRUPOS].map(g => {
+    const sel = e && e.grupo === g ? 'selected' : '';
+    return `<option value="${esc(g)}" ${sel}>${g ? esc(g) : 'Escolha'}</option>`;
+  }).join('');
+  return `
+    <button class="ghost" data-acao="voltarExercicios">← Voltar</button>
+    <h2>${e ? 'Editar exercício' : 'Novo exercício'}</h2>
+    <section class="cartao">
+      <form data-form="exercicio">
+        <input type="hidden" name="id" value="${esc(e ? e.id : '')}">
+        <label>Nome
+          <input name="nome" required value="${esc(e ? e.nome : '')}" placeholder="ex.: Supino reto">
+        </label>
+        <label>Grupo muscular
+          <select name="grupo">${opcoes}</select>
+        </label>
+        <label>Link do vídeo (opcional)
+          <input name="video" value="${esc(e ? e.video || '' : '')}" placeholder="https://...">
+        </label>
+        <button class="secundario-btn" type="button" data-acao="buscarVideo">Buscar vídeo no YouTube</button>
+        <label>Descrição (opcional)
+          <textarea name="descricao" rows="3">${esc(e ? e.descricao || '' : '')}</textarea>
+        </label>
+        <button class="grande" type="submit">Salvar exercício</button>
+      </form>
+    </section>
+    ${e ? `<button class="ghost perigo" data-acao="exercicioExcluir" data-id="${esc(e.id)}">Excluir exercício</button>` : ''}`;
+}
+
+function telaAlunoNovo() {
+  return `
+    <button class="ghost" data-acao="voltarPersonal">← Voltar</button>
+    <section class="cartao">
+      <h2>Novo aluno</h2>
+      <form data-form="alunoNovo">
+        <label>Nome do aluno
+          <input name="nome" required>
+        </label>
+        <button class="grande" type="submit">Cadastrar</button>
+      </form>
+    </section>`;
+}
+
+function telaAlunoDetalhe() {
+  const a = alunoPorId(rota.alunoId);
+  if (!a) { rota = { tela: 'personal' }; return telaPersonal(); }
+  const treinos = db.treinos.filter(t => t.alunoId === a.id);
+  const lista = treinos.length
+    ? treinos.map(t => `
+        <div class="linha item-linha">
+          <button class="item" data-acao="editarTreino" data-id="${esc(t.id)}">
+            <strong>${esc(t.nome) || 'Sem nome'}</strong>
+            <span class="suave">${t.exercicios.length} exercício(s)${periodoTxt(t)}</span>
+          </button>
+          <button class="ghost" data-acao="enviarTreino" data-id="${esc(t.id)}">WhatsApp</button>
+          <button class="ghost" data-acao="duplicarTreino" data-id="${esc(t.id)}">Duplicar</button>
+        </div>`).join('')
+    : '<p class="suave">Nenhum treino ainda.</p>';
+  const impressao = `
+    <div class="so-impressao">
+      <h2>Treinos de ${esc(a.nome)}</h2>
+      ${treinos.map(t => `
+        <h3>${esc(t.nome)}${periodoTxt(t)}</h3>
+        <table>
+          <tr><th>Exercício</th><th>Séries</th><th>Reps</th><th>Carga</th><th>Descanso</th><th>Obs.</th></tr>
+          ${t.exercicios.map(e => `<tr><td>${esc(e.nome)}</td><td>${esc(e.series)}</td><td>${esc(e.reps)}</td><td>${esc(e.carga)}</td><td>${esc(e.descanso)} s</td><td>${esc(e.obs)}</td></tr>`).join('')}
+        </table>`).join('')}
+    </div>`;
+  return `
+    <button class="ghost" data-acao="voltarPersonal">← Voltar</button>
+    <section class="cartao">
+      <h2>${esc(a.nome)}</h2>
+      <p>Código de acesso: <strong class="codigo">${esc(a.codigo)}</strong></p>
+      <p class="suave">O aluno digita esse código na tela "Sou aluno".</p>
+      <button class="ghost" data-acao="renomearAluno">Renomear aluno</button>
+    </section>
+    <section class="cartao">
+      <form data-form="recado">
+        <label>Recado para o aluno (ele vê na tela inicial dele)
+          <textarea name="recado" rows="2">${esc(a.recado || '')}</textarea>
+        </label>
+        <button class="secundario-btn" type="submit">Salvar recado</button>
+      </form>
+    </section>
+    <h3>Treinos</h3>
+    <div class="lista">${lista}</div>
+    <button class="grande" data-acao="novoTreino">+ Novo treino</button>    <button class="secundario-btn naoimprime" data-acao="imprimirTreinos">Imprimir treinos</button>
+    <h3>Acompanhamento</h3>
+    <div class="lista">
+      <button class="secundario-btn" data-acao="avaliacoes">Avaliações e anamnese</button>
+      <button class="secundario-btn" data-acao="progresso">Progresso de cargas</button>
+      <button class="secundario-btn" data-acao="pagamento">Mensalidade e Pix</button>
+      <button class="secundario-btn" data-acao="historico">Ver treinos feitos</button>
+    </div>
+    <button class="ghost perigo" data-acao="excluirAluno">Excluir aluno</button>
+    ${impressao}`;
+}
+
+function telaTreinoEditar() {
+  if (!rascunho) { rota = { tela: 'personal' }; return telaPersonal(); }
+  const a = alunoPorId(rascunho.alunoId);
+  const exercicios = rascunho.exercicios.map((e, i) => `
+    <div class="cartao">
+      <div class="linha">
+        <strong>Exercício ${i + 1}</strong>
+        <button class="ghost perigo" data-acao="exRemover" data-idx="${i}">Remover</button>
+      </div>
+      <label>Nome
+        <input data-exc="nome" data-idx="${i}" value="${esc(e.nome)}" list="biblioteca" autocomplete="off" placeholder="ex.: Supino reto">
+      </label>
+      <div class="grade">
+        <label>Séries
+          <input data-exc="series" data-idx="${i}" inputmode="numeric" value="${esc(e.series)}">
+        </label>
+        <label>Reps
+          <input data-exc="reps" data-idx="${i}" value="${esc(e.reps)}" placeholder="ex.: 8-12">
+        </label>
+        <label>Carga (kg)
+          <input data-exc="carga" data-idx="${i}" inputmode="decimal" value="${esc(e.carga)}">
+        </label>
+        <label>Descanso (s)
+          <input data-exc="descanso" data-idx="${i}" inputmode="numeric" value="${esc(e.descanso)}">
+        </label>
+      </div>
+      <label>Observação
+        <input data-exc="obs" data-idx="${i}" value="${esc(e.obs)}">
+      </label>
+      <label>Link do vídeo (opcional)
+        <input data-exc="video" data-idx="${i}" value="${esc(e.video || '')}" placeholder="https://...">
+      </label>
+    </div>`).join('');
+  const biblioteca = `<datalist id="biblioteca">${db.exercicios.map(x => `<option value="${esc(x.nome)}"></option>`).join('')}</datalist>`;
+  const modelos = Object.entries(MODELOS_TREINO)
+    .map(([k, m]) => `<option value="${k}">${esc(m.nome)}</option>`).join('');
+  return `
+    <button class="ghost" data-acao="voltarAlunoDetalhe">← Voltar</button>
+    <h2>${rascunho.id ? 'Editar treino' : 'Novo treino'}</h2>
+    <p class="suave">Aluno: ${esc(a ? a.nome : '')}</p>
+    <label>Começar de um modelo pronto (opcional)
+      <select data-modelo>
+        <option value="">Escolha um modelo</option>
+        ${modelos}
+      </select>
+    </label>
+    <label>Nome do treino
+      <input data-campo="nome" value="${esc(rascunho.nome)}" placeholder="ex.: Treino A - Peito e tríceps">
+    </label>
+    <div class="grade">
+      <label>Válido a partir de
+        <input type="date" data-campo="inicio" value="${esc(rascunho.inicio || '')}">
+      </label>
+      <label>Válido até
+        <input type="date" data-campo="fim" value="${esc(rascunho.fim || '')}">
+      </label>
+    </div>
+    ${exercicios || '<p class="suave">Nenhum exercício ainda. Adicione abaixo ou escolha um modelo.</p>'}
+    ${biblioteca}
+    <button class="secundario-btn" data-acao="exAdicionar">+ Adicionar exercício</button>
+    <button class="grande" data-acao="treinoSalvar">Salvar treino</button>
+    ${rascunho.id ? '<button class="ghost perigo" data-acao="treinoExcluir">Excluir treino</button>' : ''}`;
+}
+
+function telaPagamento() {
+  const a = alunoPorId(rota.alunoId);
+  if (!a) { rota = { tela: 'personal' }; return telaPersonal(); }
+  const p = a.pagamento || { valor: '', dia: '', meses: [] };
+  const mes = mesAtual();
+  const pago = (p.meses || []).includes(mes);
+  const atrasado = !pago && Number(p.dia) >= 1 && new Date().getDate() > Number(p.dia);
+  const situacao = pago ? '✔ Pago' : atrasado ? 'Em atraso' : 'Pendente';
+  const historico = (p.meses || []).slice().sort((x, y) => y.localeCompare(x))
+    .map(m => `<p class="linha-s">${mesBR(m)} · pago</p>`).join('')
+    || '<p class="suave">Nenhum pagamento marcado ainda.</p>';
+  const pix = (db.config && db.config.pix) || {};
+  const temChave = !!txt(pix.chave);
+  const valor = numero(p.valor, 0);
+  const blocoPix = temChave && valor > 0
+    ? `<section class="cartao">
+         <h3>Pix da mensalidade</h3>
+         <p class="suave">Gera um código copia e cola. O aluno cola no app do banco dele e paga.</p>
+         <button class="secundario-btn" data-acao="gerarPix">Gerar Pix de R$ ${esc(p.valor)}</button>
+         ${rota.pixCodigo ? `<textarea id="pix-codigo" readonly rows="4">${esc(rota.pixCodigo)}</textarea>
+           <button class="secundario-btn" data-acao="copiarPix">Copiar código</button>` : ''}
+       </section>`
+    : `<section class="cartao">
+         <p class="suave">${temChave ? 'Informe o valor da mensalidade para gerar o Pix.' : 'Para gerar Pix, cadastre sua chave em Configurações.'}</p>
+         <button class="secundario-btn" data-acao="configuracoes">Abrir Configurações</button>
+       </section>`;
+  return `
+    <button class="ghost" data-acao="voltarAlunoDetalhe">← Voltar</button>
+    <h2>Mensalidade de ${esc(a.nome)}</h2>
+    <section class="cartao">
+      <p>Mês ${mesBR(mes)}: <strong>${situacao}</strong></p>
+      ${p.valor ? `<p class="suave">Valor: R$ ${esc(p.valor)}</p>` : ''}
+      <button class="grande" data-acao="alternarPagamento">${pago ? 'Desmarcar pagamento' : 'Marcar como pago'}</button>    </section>
+    ${blocoPix}
+    <section class="cartao">
+      <h3>Valor e vencimento</h3>
+      <form data-form="pagamento">
+        <label>Valor da mensalidade (R$)
+          <input name="valor" inputmode="decimal" value="${esc(p.valor)}">
+        </label>
+        <label>Dia de vencimento (1 a 31)
+          <input name="dia" inputmode="numeric" value="${esc(p.dia)}">
+        </label>
+        <button class="secundario-btn" type="submit">Salvar</button>
+      </form>
+    </section>
+    <h3>Meses pagos</h3>
+    ${historico}`;
+}
+
+function calcularIMC(campos) {
+  const peso = numero(campos.peso, NaN);
+  const altura = numero(campos.altura, NaN);
+  if (!(peso > 0) || !(altura > 0)) return '';
+  const imc = peso / ((altura / 100) ** 2);
+  return `<p class="linha-s"><strong>IMC:</strong> ${imc.toFixed(1).replace('.', ',')}</p>`;
+}
+
+function telaAvaliacoes() {
+  const alunoId = rota.alunoId;
+  const a = alunoPorId(alunoId);
+  if (!a) { rota = { tela: 'inicio' }; return telaInicio(); }
+  const personal = sessao && sessao.papel === 'personal';
+  const volta = personal ? 'voltarAlunoDetalhe' : 'voltarInicioAluno';
+  const anam = db.anamneses.find(x => x.alunoId === alunoId);
+  const respostas = anam
+    ? perguntasAnamnese().map(p => {
+        const r = anam.respostas[p.id];
+        return `<p><strong>${esc(p.texto)}</strong><br><span class="texto">${r ? esc(r) : '<span class="suave">Não respondido</span>'}</span></p>`;
+      }).join('')
+    : '<p class="suave">Nenhuma anamnese ainda.</p>';
+  const avs = db.avaliacoes
+    .filter(x => x.alunoId === alunoId)
+    .sort((x, y) => y.data.localeCompare(x.data) || (y.criadoEm || '').localeCompare(x.criadoEm || ''));
+  const variacao = (av, anterior, k) => {
+    if (!anterior) return '';
+    const atual = numeroPuro(av.campos[k]);
+    const antes = numeroPuro(anterior.campos[k]);
+    if (!Number.isFinite(atual) || !Number.isFinite(antes)) return '';
+    const d = atual - antes;
+    if (d === 0) return ' (sem mudança)';
+    return ` (${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1).replace('.', ',')} desde ${dataBR(anterior.data)})`;
+  };
+  const cards = avs.length
+    ? avs.map((av, i) => {
+        const modelo = MODELOS_AVALIACAO[av.tipo];
+        if (!modelo) return '';
+        const anterior = avs.slice(i + 1).find(x => x.tipo === av.tipo);
+        const linhas = modelo.campos
+          .filter(([k]) => txt(av.campos[k]))
+          .map(([k, t]) => `<p class="linha-s"><span class="suave">${esc(t)}:</span> ${esc(av.campos[k])}${variacao(av, anterior, k)}</p>`)
+          .join('');
+        const imc = av.tipo === 'fisica' ? calcularIMC(av.campos) : '';
+        const fotos = (av.fotos || []).length
+          ? `<div class="fotos">${av.fotos.map(f => `<img src="${f}" alt="Foto da avaliação">`).join('')}</div>`
+          : '';
+        return `
+          <section class="cartao">
+            <div class="linha">
+              <h3>${esc(modelo.nome)}</h3>
+              ${personal ? `<button class="ghost perigo" data-acao="excluirAvaliacao" data-id="${esc(av.id)}">Excluir</button>` : ''}
+            </div>
+            <p class="suave">${dataBR(av.data)}</p>
+            ${imc}
+            ${linhas || '<p class="suave">Sem valores preenchidos.</p>'}
+            ${fotos}
+          </section>`;
+      }).join('')
+    : '<p class="suave">Nenhuma avaliação ainda.</p>';
+  const novas = personal ? `
+    <h3>Nova avaliação</h3>
+    <div class="grade">
+      <button class="secundario-btn" data-acao="avaliacaoNova" data-tipo="fisica">Física</button>
+      <button class="secundario-btn" data-acao="avaliacaoNova" data-tipo="postural">Postural</button>
+      <button class="secundario-btn" data-acao="avaliacaoNova" data-tipo="neuromotora">Neuromotora</button>
+    </div>` : '';
+  return `
+    <button class="ghost" data-acao="${volta}">← Voltar</button>
+    <h2>Avaliações e anamnese de ${esc(a.nome)}</h2>
+    <section class="cartao">
+      <div class="linha">
+        <h3>Anamnese</h3>
+        ${personal ? '<button class="ghost" data-acao="anamneseEditar">Editar</button>' : ''}
+      </div>
+      ${anam ? `<p class="suave">Atualizada em ${dataBR(anam.data)}</p>` : ''}
+      ${respostas}
+    </section>
+    ${novas}
+    <h3>Avaliações</h3>
+    ${cards}`;
+}
+
+function telaAvaliacaoNova() {
+  const a = alunoPorId(rota.alunoId);
+  if (!a) { rota = { tela: 'inicio' }; return telaInicio(); }
+  const tipo = MODELOS_AVALIACAO[rota.tipo] ? rota.tipo : 'fisica';
+  const modelo = MODELOS_AVALIACAO[tipo];
+  const campos = modelo.campos.map(([k, t]) => `
+    <label>${esc(t)}
+      <input name="${k}" ${tipo === 'fisica' ? 'inputmode="decimal"' : ''} autocomplete="off">
+    </label>`).join('');
+  return `
+    <button class="ghost" data-acao="voltarAvaliacoes">← Voltar</button>
+    <h2>${esc(modelo.nome)}</h2>
+    <p class="suave">Aluno: ${esc(a.nome)}</p>
+    <section class="cartao">
+      <form data-form="avaliacao">
+        <input type="hidden" name="tipo" value="${tipo}">
+        <label>Data
+          <input type="date" name="data" value="${dataHoje()}">
+        </label>
+        ${campos}
+        <label>Fotos (opcional, pode escolher várias)
+          <input type="file" accept="image/*" multiple data-foto>
+        </label>
+        <p class="suave" id="fotos-status">${fotosTemp.length ? fotosTemp.length + ' foto(s) pronta(s).' : 'Nenhuma foto escolhida.'}</p>
+        <button class="grande" type="submit">Salvar avaliação</button>
+      </form>
+    </section>`;
+}
+
+function telaAnamneseEditar() {
+  const a = alunoPorId(rota.alunoId);
+  if (!a) { rota = { tela: 'inicio' }; return telaInicio(); }
+  const anam = db.anamneses.find(x => x.alunoId === a.id);
+  const respostas = anam ? anam.respostas : {};
+  const campos = perguntasAnamnese().map(p => `
+    <label>${esc(p.texto)}
+      <textarea name="${p.id}" rows="2">${esc(respostas[p.id] || '')}</textarea>
+    </label>`).join('');
+  return `
+    <button class="ghost" data-acao="voltarAvaliacoes">← Voltar</button>
+    <h2>Anamnese de ${esc(a.nome)}</h2>
+    <section class="cartao">
+      <form data-form="anamnese">
+        ${campos}
+        <button class="grande" type="submit">Salvar anamnese</button>
+      </form>
+    </section>`;
+}
+
+function telaProgresso() {
+  const alunoId = rota.alunoId;
+  const a = alunoPorId(alunoId);
+  if (!a) { rota = { tela: 'inicio' }; return telaInicio(); }
+  const personal = sessao && sessao.papel === 'personal';
+  const volta = personal ? 'voltarAlunoDetalhe' : 'voltarInicioAluno';
+  const nomes = nomesExercicios(alunoId);
+  const escolhido = rota.exercicio && nomes.includes(rota.exercicio) ? rota.exercicio : nomes[0];
+  const pontos = escolhido ? progressoPontos(alunoId, escolhido) : [];
+  const corpo = !nomes.length
+    ? '<p class="suave">Ainda não há treinos feitos para mostrar o progresso.</p>'
+    : pontos.length
+      ? `<section class="cartao"><h3>${esc(escolhido)}</h3>${graficoSVG(pontos)}<p class="suave">Maior carga usada em cada treino feito.</p></section>`
+      : `<p class="suave">Ainda não há cargas registradas para ${esc(escolhido)}.</p>`;
+  const lista = nomes.map(n => `
+    <button class="item" data-acao="progressoEx" data-nome="${esc(n)}">
+      <strong>${esc(n)}</strong>
+    </button>`).join('');
+  return `
+    <button class="ghost" data-acao="${volta}">← Voltar</button>
+    <h2>Progresso${personal ? ' de ' + esc(a.nome) : ''}</h2>
+    ${corpo}
+    <h3>Exercícios</h3>
+    <div class="lista">${lista}</div>`;
+}
+
+function alunosEmAtraso() {
+  const mes = mesAtual();
+  const dia = new Date().getDate();
+  return db.alunos.filter(a => {
+    const p = a.pagamento;
+    if (!p || !(Number(p.dia) >= 1)) return false;
+    return !(p.meses || []).includes(mes) && dia > Number(p.dia);
+  });
+}
+
+
+function telaAlunoLogin() {
+  return `
+    <section class="cartao centro">
+      <h2>Entrar como aluno</h2>
+      <p class="suave">Digite o código que seu personal passou.</p>
+      <form data-form="alunoLogin">
+        <label>Código
+          <input name="codigo" required maxlength="10" autocapitalize="characters">
+        </label>
+        <button class="grande" type="submit">Entrar</button>
+      </form>
+    </section>
+    <button class="ghost" data-acao="voltarInicio">← Voltar</button>`;
+}
+
+function telaAlunoHome() {
+  const a = alunoLogado();
+  if (!a) { gravarSessao(null); rota = { tela: 'inicio' }; return telaInicio(); }
+  const treinos = db.treinos.filter(t => t.alunoId === a.id);
+  const lista = treinos.length
+    ? treinos.map(t => `
+        <button class="item" data-acao="iniciarTreino" data-id="${esc(t.id)}">
+          <strong>${esc(t.nome)}</strong>
+          <span class="suave">${t.exercicios.length} exercício(s)${periodoTxt(t)} · toque para começar</span>
+        </button>`).join('')
+    : '<p class="suave">Seu personal ainda não cadastrou treinos.</p>';
+  const continuar = execucao && execucao.alunoId === a.id
+    ? '<button class="grande" data-acao="retomarTreino">Continuar treino em andamento</button>'
+    : '';
+  const recado = a.recado
+    ? `<section class="cartao"><h3>Recado do seu personal</h3><p class="texto">${esc(a.recado)}</p></section>`
+    : '';
+  const semana = sessoesDaSemana().filter(s => s.alunoId === a.id).length;
+  return `
+    <h2>Olá, ${esc(a.nome)}</h2>
+    <p class="suave">Nos últimos 7 dias: ${semana} treino(s) feito(s).</p>
+    ${recado}
+    ${continuar}
+    <h3>Meus treinos</h3>
+    <div class="lista">${lista}</div>
+    <button class="secundario-btn" data-acao="progresso">Meu progresso de cargas</button>
+    <button class="secundario-btn" data-acao="avaliacoes">Minhas avaliações e anamnese</button>
+    <button class="secundario-btn" data-acao="historico">Meu histórico</button>
+    <button class="ghost" data-acao="backup">Backup dos dados</button>`;
+}
+
+function telaTreinoRealizar() {
+  const t = execucao ? db.treinos.find(x => x.id === execucao.treinoId) : null;
+  if (!t) { execucao = null; gravarExecucao(); rota = { tela: 'alunoHome' }; return telaAlunoHome(); }
+  const blocos = t.exercicios.map((ex, i) => {
+    const series = execucao.series[ex.id] || [];
+    const linhas = series.map((s, j) => `
+      <div class="serie ${s.feito ? 'feita' : ''}">
+        <span class="num">${j + 1}</span>
+        <label>Reps
+          <input data-real="reps" data-ex="${esc(ex.id)}" data-j="${j}" value="${esc(s.reps)}" inputmode="numeric">
+        </label>
+        <label>Kg
+          <input data-real="carga" data-ex="${esc(ex.id)}" data-j="${j}" value="${esc(s.carga)}" inputmode="decimal">
+        </label>
+        <button class="check ${s.feito ? 'on' : ''}" data-acao="feito" data-ex="${esc(ex.id)}" data-j="${j}"
+          aria-label="Marcar série ${j + 1} como feita">${s.feito ? '✔' : 'OK'}</button>
+      </div>`).join('');
+    const extra = [ex.reps && `${ex.reps} reps`, ex.carga && `${ex.carga} kg`, ex.descanso && `descanso ${ex.descanso} s`, ex.obs]
+      .filter(Boolean).join(' · ');
+    const video = ex.video
+      ? `<p class="linha-s"><a href="${esc(ex.video)}" target="_blank" rel="noopener">▶ Ver vídeo do exercício</a></p>`
+      : `<p class="linha-s"><a href="${esc(youtubeBusca(ex.nome))}" target="_blank" rel="noopener">▶ Buscar vídeo no YouTube</a></p>`;
+    const ultima = ultimaVez(ex.nome, execucao.alunoId);
+    return `
+      <section class="cartao">
+        <h3>${i + 1}. ${esc(ex.nome)}</h3>
+        <p class="suave">Plano: ${esc(ex.series)} séries${extra ? ' · ' + esc(extra) : ''}</p>
+        ${ultima ? `<p class="suave">Última vez: ${ultima}</p>` : ''}
+        ${video}
+        ${linhas}
+      </section>`;
+  }).join('');
+  return `
+    <button class="ghost" data-acao="cancelarTreino">← Cancelar</button>
+    <h2>${esc(t.nome)}</h2>
+    <p class="suave">Marque cada série ao terminar. Os valores já vêm do plano; ajuste se fez diferente.</p>
+    ${blocos}
+    <section class="cartao">
+      <label>Como foi o treino? Conte para o seu personal (opcional)
+        <textarea data-fb rows="3">${esc(execucao.feedback || '')}</textarea>
+      </label>
+    </section>
+    <button class="grande" data-acao="finalizarTreino">Finalizar treino</button>`;
+}
+
+function telaHistorico() {
+  const alunoId = rota.alunoId;
+  const a = alunoPorId(alunoId);
+  const sess = db.sessoes
+    .filter(s => s.alunoId === alunoId)
+    .sort((x, y) => y.data.localeCompare(x.data));
+  const lista = sess.length
+    ? sess.map(s => {
+        const todas = s.exercicios.flatMap(ex => ex.series);
+        const feitas = todas.filter(x => x.feito).length;
+        return `
+          <button class="item" data-acao="abrirSessao" data-id="${esc(s.id)}">
+            <strong>${esc(s.treinoNome)}</strong>
+            <span class="suave">${dataCurta(s.data)} · ${feitas}/${todas.length} séries${s.feedback ? ' · com feedback' : ''}</span>
+          </button>`;
+      }).join('')
+    : '<p class="suave">Nenhum treino registrado ainda.</p>';
+  const volta = sessao && sessao.papel === 'aluno' ? 'voltarInicioAluno' : 'voltarAlunoDetalhe';
+  return `
+    <button class="ghost" data-acao="${volta}">← Voltar</button>
+    <h2>Histórico${a ? ' de ' + esc(a.nome) : ''}</h2>
+    <div class="lista">${lista}</div>`;
+}
+
+function telaSessaoDetalhe() {
+  const s = db.sessoes.find(x => x.id === rota.sessaoId);
+  if (!s) { rota = { tela: 'inicio' }; return telaInicio(); }
+  const blocos = s.exercicios.map(ex => `
+    <section class="cartao">
+      <h3>${esc(ex.nome)}</h3>
+      ${ex.series.map((x, j) => `
+        <p class="linha-s ${x.feito ? '' : 'nao'}">
+          Série ${j + 1}: ${x.feito ? `${esc(x.reps)} reps · ${esc(x.carga) || '—'} kg ✔` : 'não feita'}
+        </p>`).join('')}
+    </section>`).join('');
+  const feedback = s.feedback
+    ? `<section class="cartao"><h3>Feedback do aluno</h3><p class="texto">${esc(s.feedback)}</p></section>`
+    : '';
+  return `
+    <button class="ghost" data-acao="voltarHistorico">← Histórico</button>
+    <h2>${esc(s.treinoNome)}</h2>
+    <p class="suave">${dataCurta(s.data)} · ${Math.round(s.duracaoSeg / 60)} min</p>
+    ${feedback}
+    ${blocos}`;
+}
+
+function telaBackup() {
+  const volta = sessao && sessao.papel === 'personal' ? 'voltarPersonal'
+    : sessao && sessao.papel === 'aluno' ? 'voltarInicioAluno'
+    : 'voltarInicio';
+  return `
+    <button class="ghost" data-acao="${volta}">← Voltar</button>
+    <h2>Backup dos dados</h2>
+    <section class="cartao">
+      <p>O backup é um arquivo com todos os alunos, treinos, exercícios, avaliações (com fotos), anamneses, pagamentos, configurações e histórico. Guarde em um lugar seguro, como uma pasta do OneDrive ou um pendrive.</p>
+      <button class="grande" data-acao="baixarBackup">Salvar backup no computador</button>
+    </section>
+    <section class="cartao">
+      <h3>Restaurar um backup</h3>
+      <p class="suave">Isso substitui todos os dados deste navegador pelos do arquivo.</p>
+      <label>Escolha o arquivo de backup
+        <input type="file" accept=".json,application/json" data-backup="restaurar">
+      </label>
+    </section>`;
+}
+
+function dadosValidos(d) {
+  return !!d && typeof d === 'object'
+    && Array.isArray(d.alunos) && Array.isArray(d.treinos) && Array.isArray(d.sessoes)
+    && (d.personal === null || d.personal === undefined || typeof d.personal === 'object');
+}
+
+// ---------- ações (botões) ----------
+
+const acoes = {
+  irCriarConta() { ir({ tela: 'criarConta' }); },
+  irEntrar() { ir({ tela: 'entrar' }); },
+
+  async sairDaConta() {
+    if (!(await pedirConfirmacao('Sair da conta neste aparelho? Os dados continuam salvos na conta.'))) return;
+    if (nuvem.pendente) enfileirarEnvio();
+    await nuvem.fila;
+    if (sb) {
+      if (nuvem.canal) { await sb.removeChannel(nuvem.canal); nuvem.canal = null; }
+      await sb.auth.signOut();
+    }
+    nuvem.ativa = false;
+    nuvem.carregada = false;
+    usuarioId = null;
+    execucao = null;
+    rascunho = null;
+    gravarExecucao();
+    gravarSessao(null);
+    indicarNuvem('');
+    ir({ tela: 'entrar' });
+  },
+
+
+  entrarPersonal() {
+    if (db.personal) {
+      gravarSessao({ papel: 'personal' });
+      ir({ tela: 'personal' });
+    } else {
+      ir({ tela: 'personalNome' });
+    }
+  },
+
+  entrarAluno() {
+    ir({ tela: alunoLogado() ? 'alunoHome' : 'alunoLogin' });
+  },
+
+  voltarInicio() {
+    ir({ tela: 'inicio' });
+  },
+
+  async sair() {
+    if (execucao && !(await pedirConfirmacao('Sair agora? O treino em andamento será descartado.'))) return;
+    execucao = null;
+    rascunho = null;
+    gravarExecucao();
+    gravarSessao(null);
+    ir({ tela: 'inicio' });
+  },
+
+  // personal
+  novoAluno() { ir({ tela: 'alunoNovo' }); },
+  voltarPersonal() { ir({ tela: 'personal' }); },
+  abrirAluno(el) { ir({ tela: 'alunoDetalhe', alunoId: el.dataset.id }); },
+  configuracoes() { ir({ tela: 'configuracoes' }); },
+
+  async renomearAluno() {
+    const a = alunoPorId(rota.alunoId);
+    if (!a) return;
+    const nome = txt((await perguntarTexto('Novo nome do aluno:', a.nome)) || '');
+    if (!nome) return;
+    a.nome = nome;
+    if (!salvarDados()) return;
+    render();
+  },
+
+  async excluirAluno() {
+    const a = alunoPorId(rota.alunoId);
+    if (!a) return;
+    if (!(await pedirConfirmacao(`Excluir ${a.nome}, os treinos, o histórico, as avaliações e a anamnese dele? Isso não pode ser desfeito.`))) return;
+    db.alunos = db.alunos.filter(x => x.id !== a.id);
+    db.treinos = db.treinos.filter(t => t.alunoId !== a.id);
+    db.sessoes = db.sessoes.filter(s => s.alunoId !== a.id);
+    db.avaliacoes = db.avaliacoes.filter(x => x.alunoId !== a.id);
+    db.anamneses = db.anamneses.filter(x => x.alunoId !== a.id);
+    if (!salvarDados()) return;
+    ir({ tela: 'personal' });
+  },
+
+  imprimirTreinos() { window.print(); },
+
+  enviarTreino(el) {
+    const t = db.treinos.find(x => x.id === el.dataset.id);
+    if (!t) return;
+    abrirLink('https://wa.me/?text=' + encodeURIComponent(textoTreino(t)));
+  },
+
+  // biblioteca de exercícios
+  exercicios() { ir({ tela: 'exercicios' }); },
+  voltarExercicios() { ir({ tela: 'exercicios' }); },
+  exercicioNovo() { ir({ tela: 'exercicioForm', id: null }); },
+  exercicioEditar(el) { ir({ tela: 'exercicioForm', id: el.dataset.id }); },
+
+  buscarVideo() {
+    const f = document.querySelector('form[data-form="exercicio"]');
+    const nome = f ? txt(campo(f, 'nome')) : '';
+    if (!nome) { avisar('Digite o nome do exercício primeiro.'); return; }
+    abrirLink(youtubeBusca(nome));
+  },
+
+  async exercicioExcluir(el) {
+    const e = db.exercicios.find(x => x.id === el.dataset.id);
+    if (!e) return;
+    if (!(await pedirConfirmacao(`Excluir "${e.nome}" da biblioteca? Os treinos que já usam esse exercício continuam com ele.`))) return;
+    db.exercicios = db.exercicios.filter(x => x.id !== e.id);
+    if (!salvarDados()) return;
+    ir({ tela: 'exercicios' });
+  },
+
+  // treinos
+  novoTreino() {
+    rascunho = { id: null, alunoId: rota.alunoId, nome: '', inicio: '', fim: '', exercicios: [] };
+    ir({ tela: 'treinoEditar', alunoId: rota.alunoId });
+  },
+
+  editarTreino(el) {
+    const t = db.treinos.find(x => x.id === el.dataset.id);
+    if (!t) return;
+    rascunho = JSON.parse(JSON.stringify(t));
+    ir({ tela: 'treinoEditar', alunoId: t.alunoId });
+  },
+
+  duplicarTreino(el) {
+    const t = db.treinos.find(x => x.id === el.dataset.id);
+    if (!t) return;
+    const copia = JSON.parse(JSON.stringify(t));
+    copia.id = novoId();
+    copia.nome = `${t.nome} (cópia)`;
+    copia.criadoEm = new Date().toISOString();
+    copia.exercicios = copia.exercicios.map(e => ({ ...e, id: novoId() }));
+    db.treinos.push(copia);
+    if (!salvarDados()) return;
+    ir({ tela: 'alunoDetalhe', alunoId: t.alunoId });
+  },
+
+  voltarAlunoDetalhe() {
+    rascunho = null;
+    ir({ tela: 'alunoDetalhe', alunoId: rota.alunoId });
+  },
+
+  exAdicionar() {
+    rascunho.exercicios.push({ id: novoId(), nome: '', series: '3', reps: '10', carga: '', descanso: '60', obs: '', video: '' });
+    render();
+  },
+
+  exRemover(el) {
+    rascunho.exercicios.splice(Number(el.dataset.idx), 1);
+    render();
+  },
+
+  treinoSalvar() {
+    const nome = txt(rascunho.nome);
+    if (!nome) { avisar('Dê um nome para o treino.'); return; }
+    if (!rascunho.exercicios.length) { avisar('Adicione pelo menos um exercício.'); return; }
+    if (rascunho.exercicios.some(e => !txt(e.nome))) { avisar('Dê um nome para cada exercício.'); return; }
+    const inicio = rascunho.inicio || '';
+    const fim = rascunho.fim || '';
+    if (inicio && fim && fim < inicio) { avisar('A data final é antes da data inicial.'); return; }
+
+    const exercicios = rascunho.exercicios.map(e => ({
+      id: e.id || novoId(),
+      nome: txt(e.nome),
+      series: Math.max(1, Math.round(numero(e.series, 1))),
+      reps: txt(e.reps),
+      carga: txt(e.carga),
+      descanso: Math.max(0, Math.round(numero(e.descanso, 60))),
+      obs: txt(e.obs),
+      video: linkSeguro(txt(e.video)),
+    }));
+
+    if (rascunho.id) {
+      const t = db.treinos.find(x => x.id === rascunho.id);
+      if (t) Object.assign(t, { nome, inicio, fim, exercicios });
+    } else {
+      db.treinos.push({
+        id: novoId(), alunoId: rascunho.alunoId, nome, inicio, fim, exercicios,
+        criadoEm: new Date().toISOString(),
+      });
+    }
+    if (!salvarDados()) return;
+    const alunoId = rascunho.alunoId;
+    rascunho = null;
+    ir({ tela: 'alunoDetalhe', alunoId });
+  },
+
+  async treinoExcluir() {
+    if (!rascunho || !rascunho.id) return;
+    if (!(await pedirConfirmacao('Excluir este treino? O histórico de treinos já feitos continua salvo.'))) return;
+    const alunoId = rascunho.alunoId;
+    db.treinos = db.treinos.filter(t => t.id !== rascunho.id);
+    if (!salvarDados()) return;
+    rascunho = null;
+    ir({ tela: 'alunoDetalhe', alunoId });
+  },
+
+  // acompanhamento: avaliações, anamnese, progresso e mensalidade
+  avaliacoes() {
+    const alunoId = sessao && sessao.papel === 'aluno' ? sessao.alunoId : rota.alunoId;
+    ir({ tela: 'avaliacoes', alunoId });
+  },
+
+  voltarAvaliacoes() {
+    ir({ tela: 'avaliacoes', alunoId: rota.alunoId });
+  },
+
+  avaliacaoNova(el) {
+    fotosTemp = [];
+    ir({ tela: 'avaliacaoNova', alunoId: rota.alunoId, tipo: el.dataset.tipo });
+  },
+
+  async excluirAvaliacao(el) {
+    if (!(await pedirConfirmacao('Excluir esta avaliação?'))) return;
+    db.avaliacoes = db.avaliacoes.filter(x => x.id !== el.dataset.id);
+    if (!salvarDados()) return;
+    render();
+  },
+
+  anamneseEditar() {
+    ir({ tela: 'anamneseEditar', alunoId: rota.alunoId });
+  },
+
+  progresso() {
+    const alunoId = sessao && sessao.papel === 'aluno' ? sessao.alunoId : rota.alunoId;
+    ir({ tela: 'progresso', alunoId });
+  },
+
+  progressoEx(el) {
+    rota.exercicio = el.dataset.nome;
+    render();
+  },
+
+  pagamento() {
+    ir({ tela: 'pagamento', alunoId: rota.alunoId });
+  },
+
+  alternarPagamento() {
+    const a = alunoPorId(rota.alunoId);
+    if (!a) return;
+    if (!a.pagamento) a.pagamento = { valor: '', dia: '', meses: [] };
+    if (!Array.isArray(a.pagamento.meses)) a.pagamento.meses = [];
+    const mes = mesAtual();
+    a.pagamento.meses = a.pagamento.meses.includes(mes)
+      ? a.pagamento.meses.filter(m => m !== mes)
+      : [...a.pagamento.meses, mes];
+    if (!salvarDados()) return;
+    render();
+  },
+
+  gerarPix() {
+    const a = alunoPorId(rota.alunoId);
+    const pix = (db.config && db.config.pix) || {};
+    const valor = numero(a && a.pagamento ? a.pagamento.valor : '', 0);
+    if (!txt(pix.chave) || !(valor > 0)) {
+      avisar('Confira a chave Pix em Configurações e o valor da mensalidade.');
+      return;
+    }
+    rota.pixCodigo = pixCopiaCola({
+      chave: txt(pix.chave),
+      nome: txt(pix.nome) || (db.personal ? db.personal.nome : 'RECEBEDOR'),
+      cidade: txt(pix.cidade) || 'BRASIL',
+      valor,
+      txid: 'MENS' + mesAtual().replace('-', ''),
+    });
+    render();
+  },
+
+  copiarPix() {
+    const el = document.getElementById('pix-codigo');
+    if (!el) return;
+    el.select();
+    let copiou = false;
+    try { copiou = document.execCommand('copy'); } catch (e) { copiou = false; }
+    const msg = copiou ? 'Código copiado. É só colar no app do banco.' : 'Selecione o texto da caixa e copie.';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(el.value).then(() => avisar('Código copiado. É só colar no app do banco.'), () => avisar(msg));
+    } else {
+      avisar(msg);
+    }
+  },
+
+  // histórico (personal e aluno)
+  historico() {
+    const alunoId = sessao && sessao.papel === 'aluno' ? sessao.alunoId : rota.alunoId;
+    ir({ tela: 'historico', alunoId });
+  },
+
+  voltarInicioAluno() { ir({ tela: 'alunoHome' }); },
+
+  // backup
+  backup() { ir({ tela: 'backup' }); },
+
+  async baixarBackup() {
+    const texto = JSON.stringify(db, null, 2);
+    const nome = `treino-backup-${dataHoje()}.json`;
+    // Dentro do visualizador do Claude, o download de arquivo passa pela permissão "downloads".
+    try {
+      const downloads = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+      if (downloads) {
+        await downloads.save({ filename: nome, data: texto });
+        return;
+      }
+    } catch (e) {
+      if (e && e.code === 'declined') return;
+    }
+    // Abertura direta do arquivo no computador: download comum.
+    const url = URL.createObjectURL(new Blob([texto], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
+
+  abrirSessao(el) {
+    ir({ tela: 'sessaoDetalhe', sessaoId: el.dataset.id, alunoId: rota.alunoId });
+  },
+
+  voltarHistorico() {
+    ir({ tela: 'historico', alunoId: rota.alunoId });
+  },
+
+  // aluno
+  async iniciarTreino(el) {
+    const t = db.treinos.find(x => x.id === el.dataset.id);
+    if (!t) return;
+    if (execucao && execucao.treinoId !== t.id
+        && !(await pedirConfirmacao('Você tem outro treino em andamento. Começar este descarta o outro. Continuar?'))) return;
+    if (!execucao || execucao.treinoId !== t.id) {
+      execucao = { treinoId: t.id, alunoId: t.alunoId, inicio: Date.now(), series: {}, feedback: '' };
+      t.exercicios.forEach(ex => {
+        execucao.series[ex.id] = Array.from({ length: ex.series }, () => ({
+          reps: ex.reps, carga: ex.carga, feito: false,
+        }));
+      });
+      gravarExecucao();
+    }
+    ir({ tela: 'treinoRealizar' });
+  },
+
+  retomarTreino() {
+    if (!execucao) return ir({ tela: 'alunoHome' });
+    ir({ tela: 'treinoRealizar' });
+  },
+
+  feito(el) {
+    if (!execucao) return;
+    garantirAudio();
+    const t = db.treinos.find(x => x.id === execucao.treinoId);
+    const ex = t && t.exercicios.find(e => e.id === el.dataset.ex);
+    const lista = execucao.series[el.dataset.ex];
+    if (!ex || !lista) return;
+    const j = Number(el.dataset.j);
+    lista[j].feito = !lista[j].feito;
+    gravarExecucao();
+    // descanso só entre séries: não começa depois da última série do exercício
+    if (lista[j].feito && j < lista.length - 1) iniciarDescanso(ex.descanso);
+    render();
+  },
+
+  async cancelarTreino() {
+    if (!(await pedirConfirmacao('Cancelar este treino? As séries marcadas não serão salvas.'))) return;
+    execucao = null;
+    gravarExecucao();
+    ir({ tela: 'alunoHome' });
+  },
+
+  async finalizarTreino() {
+    if (!execucao) return ir({ tela: 'alunoHome' });
+    const t = db.treinos.find(x => x.id === execucao.treinoId);
+    if (!t) {
+      execucao = null;
+      gravarExecucao();
+      return ir({ tela: 'alunoHome' });
+    }
+    const todas = Object.values(execucao.series).flat();
+    const feitas = todas.filter(s => s.feito).length;
+    if (feitas < todas.length && !(await pedirConfirmacao(`Você marcou ${feitas} de ${todas.length} séries. Finalizar assim?`))) return;
+
+    const registro = {
+      id: novoId(),
+      alunoId: execucao.alunoId,
+      treinoId: t.id,
+      treinoNome: t.nome,
+      data: new Date().toISOString(),
+      duracaoSeg: Math.round((Date.now() - execucao.inicio) / 1000),
+      feedback: txt(execucao.feedback),
+      exercicios: t.exercicios.map(ex => ({
+        nome: ex.nome,
+        series: (execucao.series[ex.id] || []).map(s => ({ reps: s.reps, carga: s.carga, feito: s.feito })),
+      })),
+    };
+    db.sessoes.push(registro);
+    if (!salvarDados()) return;
+    const alunoId = execucao.alunoId;
+    execucao = null;
+    gravarExecucao();
+    pararDescanso();
+    ir({ tela: 'sessaoDetalhe', sessaoId: registro.id, alunoId });
+  },
+};
+
+function textoTreino(t) {
+  let s = `*${t.nome}*${periodoTxt(t)}\n`;
+  t.exercicios.forEach((e, i) => {
+    s += `\n${i + 1}. ${e.nome}: ${e.series} x ${e.reps || '—'}`;
+    if (e.carga) s += ` · ${e.carga} kg`;
+    if (e.descanso) s += ` · descanso ${e.descanso} s`;
+    if (e.obs) s += ` · ${e.obs}`;
+    if (e.video) s += `\n   ${e.video}`;
+  });
+  return s;
+}
+
+async function aplicarModelo(id) {
+  const modelo = MODELOS_TREINO[id];
+  if (!modelo || !rascunho) return;
+  if (rascunho.exercicios.length && !(await pedirConfirmacao('Substituir os exercícios atuais pelos do modelo?'))) return;
+  rascunho.exercicios = modelo.exercicios.map(([nome, series, reps]) => {
+    const lib = db.exercicios.find(x => x.nome.toLowerCase() === nome.toLowerCase());
+    return {
+      id: novoId(), nome, series: String(series), reps, carga: '', descanso: '60', obs: '',
+      video: (lib && lib.video) || '',
+    };
+  });
+  if (!txt(rascunho.nome)) rascunho.nome = modelo.nome;
+  render();
+}
+
+// ---------- envio de formulários ----------
+
+const formularios = {
+  async entrar(form) {
+    if (!sb) { avisar(MSG_OFFLINE); return; }
+    const { error } = await sb.auth.signInWithPassword({ email: form.email.value.trim(), password: form.senha.value });
+    if (error) { avisar(mensagemErroConta(error)); return; }
+    await arrancar();
+  },
+
+  async criarConta(form) {
+    if (!sb) { avisar(MSG_OFFLINE); return; }
+    const { data, error } = await sb.auth.signUp({ email: form.email.value.trim(), password: form.senha.value });
+    if (error) { avisar(mensagemErroConta(error)); return; }
+    if (!data.session) {
+      avisar('Conta criada. Confirme o e-mail que chegou na sua caixa e depois entre.');
+      ir({ tela: 'entrar' });
+      return;
+    }
+    await arrancar();
+  },
+
+
+  personalNome(f) {
+    const nome = txt(campo(f, 'nome'));
+    if (!nome) return;
+    db.personal = { id: novoId(), nome };
+    if (!salvarDados()) return;
+    gravarSessao({ papel: 'personal' });
+    ir({ tela: 'personal' });
+  },
+
+  config(f) {
+    db.config = {
+      ...(db.config || {}),
+      pix: {
+        chave: txt(campo(f, 'chave')),
+        nome: txt(campo(f, 'nome')),
+        cidade: txt(campo(f, 'cidade')),
+      },
+    };
+    if (!salvarDados()) return;
+    ir({ tela: 'personal' });
+  },
+
+  perguntas(f) {
+    const linhas = campo(f, 'perguntas').split('\n').map(txt).filter(Boolean);
+    if (!linhas.length) { avisar('Deixe pelo menos uma pergunta.'); return; }
+    const atuais = perguntasAnamnese();
+    db.config = {
+      ...(db.config || {}),
+      perguntasAnamnese: linhas.map(texto => {
+        const igual = atuais.find(p => p.texto === texto);
+        return { id: igual ? igual.id : novoId(), texto };
+      }),
+    };
+    if (!salvarDados()) return;
+    ir({ tela: 'personal' });
+  },
+
+  alunoNovo(f) {
+    const nome = txt(campo(f, 'nome'));
+    if (!nome) return;
+    const aluno = { id: novoId(), nome, codigo: codigoAluno(), criadoEm: new Date().toISOString() };
+    db.alunos.push(aluno);
+    if (!salvarDados()) return;
+    ir({ tela: 'alunoDetalhe', alunoId: aluno.id });
+  },
+
+  recado(f) {
+    const a = alunoPorId(rota.alunoId);
+    if (!a) return;
+    a.recado = txt(campo(f, 'recado'));
+    if (!salvarDados()) return;
+    render();
+  },
+
+  alunoLogin(f) {
+    const codigo = txt(campo(f, 'codigo')).toUpperCase();
+    const aluno = db.alunos.find(a => a.codigo === codigo);
+    if (!aluno) {
+      avisar('Código não encontrado. Confira com seu personal.');
+      return;
+    }
+    gravarSessao({ papel: 'aluno', alunoId: aluno.id });
+    ir({ tela: 'alunoHome' });
+  },
+
+  exercicio(f) {
+    const nome = txt(campo(f, 'nome'));
+    if (!nome) return;
+    const dados = {
+      nome,
+      grupo: campo(f, 'grupo'),
+      video: linkSeguro(txt(campo(f, 'video'))),
+      descricao: txt(campo(f, 'descricao')),
+    };
+    const id = campo(f, 'id');
+    const existente = id ? db.exercicios.find(x => x.id === id) : null;
+    if (existente) Object.assign(existente, dados);
+    else db.exercicios.push({ id: novoId(), ...dados });
+    if (!salvarDados()) return;
+    ir({ tela: 'exercicios' });
+  },
+
+  pagamento(f) {
+    const a = alunoPorId(rota.alunoId);
+    if (!a) return;
+    const dia = Math.round(numero(campo(f, 'dia'), 0));
+    a.pagamento = {
+      valor: txt(campo(f, 'valor')),
+      dia: dia >= 1 && dia <= 31 ? String(dia) : '',
+      meses: (a.pagamento && a.pagamento.meses) || [],
+    };
+    rota.pixCodigo = '';
+    if (!salvarDados()) return;
+    render();
+  },
+
+  avaliacao(f) {
+    const alunoId = rota.alunoId;
+    const tipo = campo(f, 'tipo');
+    const modelo = MODELOS_AVALIACAO[tipo];
+    if (!modelo || !alunoPorId(alunoId)) return;
+    const campos = {};
+    modelo.campos.forEach(([k]) => { campos[k] = txt(campo(f, k)); });
+    const av = {
+      id: novoId(),
+      alunoId,
+      tipo,
+      data: campo(f, 'data') || dataHoje(),
+      campos,
+      fotos: fotosTemp.slice(),
+      criadoEm: new Date().toISOString(),
+    };
+    db.avaliacoes.push(av);
+    if (!salvarDados()) {
+      db.avaliacoes = db.avaliacoes.filter(x => x.id !== av.id);
+      return;
+    }
+    fotosTemp = [];
+    ir({ tela: 'avaliacoes', alunoId });
+  },
+
+  anamnese(f) {
+    const alunoId = rota.alunoId;
+    if (!alunoPorId(alunoId)) return;
+    const respostas = {};
+    perguntasAnamnese().forEach(p => { respostas[p.id] = txt(campo(f, p.id)); });
+    const existente = db.anamneses.find(x => x.alunoId === alunoId);
+    if (existente) {
+      existente.respostas = respostas;
+      existente.data = dataHoje();
+    } else {
+      db.anamneses.push({ id: novoId(), alunoId, data: dataHoje(), respostas });
+    }
+    if (!salvarDados()) return;
+    ir({ tela: 'avaliacoes', alunoId });
+  },
+};
+
+// ---------- eventos (delegação) ----------
+
+function preencherVideo(campoNome, ex) {
+  const nome = txt(ex.nome).toLowerCase();
+  const achado = db.exercicios.find(x => x.nome.toLowerCase() === nome);
+  if (!achado || !achado.video || txt(ex.video)) return;
+  ex.video = achado.video;
+  const campoVideo = campoNome.closest('.cartao').querySelector('[data-exc="video"]');
+  if (campoVideo) campoVideo.value = achado.video;
+}
+
+app.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-acao]');
+  if (el && acoes[el.dataset.acao]) acoes[el.dataset.acao](el);
+});
+
+app.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.dataset.campo && rascunho) rascunho[t.dataset.campo] = t.value;
+  if (t.dataset.exc && rascunho) {
+    const ex = rascunho.exercicios[Number(t.dataset.idx)];
+    if (ex) {
+      ex[t.dataset.exc] = t.value;
+      if (t.dataset.exc === 'nome') preencherVideo(t, ex);
+    }
+  }
+  if (t.dataset.real && execucao) {
+    const s = execucao.series[t.dataset.ex];
+    if (s && s[Number(t.dataset.j)]) {
+      s[Number(t.dataset.j)][t.dataset.real] = t.value;
+      gravarExecucao();
+    }
+  }
+  if (t.hasAttribute('data-fb') && execucao) {
+    execucao.feedback = t.value;
+    gravarExecucao();
+  }
+});
+
+app.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nome = e.target.dataset.form;
+  if (formularios[nome]) formularios[nome](e.target);
+});
+
+app.addEventListener('change', async (e) => {
+  const campoArquivo = e.target;
+
+  if (campoArquivo.dataset.modelo !== undefined) {
+    aplicarModelo(campoArquivo.value);
+    return;
+  }
+
+  if (campoArquivo.hasAttribute('data-foto')) {
+    const arquivos = [...campoArquivo.files];
+    const status = document.getElementById('fotos-status');
+    fotosTemp = [];
+    if (status) status.textContent = arquivos.length ? 'Preparando as fotos...' : 'Nenhuma foto escolhida.';
+    try {
+      for (const arquivo of arquivos) fotosTemp.push(await comprimirFoto(arquivo));
+      if (status) status.textContent = fotosTemp.length + ' foto(s) pronta(s).';
+    } catch (err) {
+      fotosTemp = [];
+      avisar('Não consegui ler uma das fotos. Tente outra.');
+      if (status) status.textContent = 'Nenhuma foto escolhida.';
+    }
+    return;
+  }
+
+  if (campoArquivo.dataset.backup !== 'restaurar') return;
+  const arquivo = campoArquivo.files[0];
+  campoArquivo.value = '';
+  if (!arquivo) return;
+
+  let novo = null;
+  try { novo = JSON.parse(await arquivo.text()); } catch (err) { novo = null; }
+  if (!dadosValidos(novo)) { avisar('Esse arquivo não é um backup do Treino.'); return; }
+  if (!(await pedirConfirmacao('Restaurar? Os dados atuais deste aparelho e da sua conta serão substituídos pelos do arquivo.'))) return;
+
+  db = {
+    personal: novo.personal || null,
+    alunos: novo.alunos,
+    treinos: novo.treinos,
+    sessoes: novo.sessoes,
+    exercicios: Array.isArray(novo.exercicios) ? novo.exercicios : [],
+    anamneses: Array.isArray(novo.anamneses) ? novo.anamneses : [],
+    avaliacoes: Array.isArray(novo.avaliacoes) ? novo.avaliacoes : [],
+    config: novo.config && typeof novo.config === 'object' ? novo.config : {},
+  };
+  if (!salvarDados()) return;
+  execucao = null;
+  gravarExecucao();
+  gravarSessao(null);
+  avisar('Backup restaurado.');
+  ir({ tela: 'inicio' });
+});
+
+btnSair.addEventListener('click', () => acoes.sair());
+descansoMais.addEventListener('click', () => ajustarDescanso(15));
+descansoPular.addEventListener('click', pararDescanso);
+
+// ---------- início ----------
+
+function iniciar() {
+  if (sessao && sessao.papel === 'personal' && db.personal) {
+    rota = { tela: 'personal' };
+  } else if (alunoLogado()) {
+    rota = execucao && execucao.alunoId === sessao.alunoId
+      ? { tela: 'treinoRealizar' }
+      : { tela: 'alunoHome' };
+  } else {
+    gravarSessao(null);
+    rota = { tela: 'inicio' };
+  }
+  if (execucao && !db.treinos.some(t => t.id === execucao.treinoId)) {
+    execucao = null;
+    gravarExecucao();
+  }
+  render();
+}
+
+arrancar();
+  </script>
+</body>
+</html>
